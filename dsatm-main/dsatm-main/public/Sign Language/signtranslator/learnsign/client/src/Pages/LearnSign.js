@@ -1,6 +1,7 @@
 import '../App.css'
 import React, { useState, useEffect, useRef } from "react";
 import Slider from 'react-input-slider';
+import { Modal, Button } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'font-awesome/css/font-awesome.min.css';
 
@@ -12,6 +13,7 @@ import ybotPic from '../Models/ybot/ybot.png';
 import * as words from '../Animations/words';
 import * as alphabets from '../Animations/alphabets';
 import { defaultPose } from '../Animations/defaultPose';
+import { signLanguageFetch, getAiApiBase } from '../utils/signLanguageApi';
 
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
@@ -20,6 +22,7 @@ function LearnSign() {
   const [bot, setBot] = useState(ybot);
   const [speed, setSpeed] = useState(0.1);
   const [pause, setPause] = useState(800);
+  const [explainModal, setExplainModal] = useState({ show: false, loading: false, value: '', type: 'letter', explanation: '', error: '' });
 
   const componentRef = useRef({});
   const { current: ref } = componentRef;
@@ -110,16 +113,34 @@ function LearnSign() {
     ref.renderer.render(ref.scene, ref.camera);
   }
 
+  const fetchExplain = async (type, value) => {
+    setExplainModal({ show: true, loading: true, value, type, explanation: '', error: '' });
+    const base = getAiApiBase();
+    try {
+      const data = await signLanguageFetch(`${base}/api/sign-language/explain`, {
+        method: 'POST',
+        body: JSON.stringify({ type, value }),
+      });
+      setExplainModal(prev => ({ ...prev, loading: false, explanation: data.explanation || '', error: '' }));
+    } catch (err) {
+      setExplainModal(prev => ({ ...prev, loading: false, explanation: '', error: err.message || 'Failed to load explanation' }));
+    }
+  };
+
   let alphaButtons = [];
   for (let i = 0; i < 26; i++) {
+    const letter = String.fromCharCode(i + 65);
     alphaButtons.push(
-        <div className='col-md-3'>
+        <div className='col-md-3' key={'alpha-' + letter}>
             <button className='signs w-100' onClick={()=>{
               if(ref.animations.length === 0){
-                alphabets[String.fromCharCode(i + 65)](ref);
+                alphabets[letter](ref);
               }
             }}>
-                {String.fromCharCode(i + 65)}
+                {letter}
+            </button>
+            <button type="button" className="btn btn-link btn-sm p-0 mt-1" onClick={() => fetchExplain('letter', letter)} aria-label={`Explain sign for ${letter}`}>
+              Explain
             </button>
         </div>
     );
@@ -127,14 +148,18 @@ function LearnSign() {
 
   let wordButtons = [];
   for (let i = 0; i < words.wordList.length; i++) {
+    const w = words.wordList[i];
     wordButtons.push(
-        <div className='col-md-4'>
+        <div className='col-md-4' key={'word-' + w}>
             <button className='signs w-100' onClick={()=>{
               if(ref.animations.length === 0){
-                words[words.wordList[i]](ref);
+                words[w](ref);
               }
             }}>
-                {words.wordList[i]}
+                {w}
+            </button>
+            <button type="button" className="btn btn-link btn-sm p-0 mt-1" onClick={() => fetchExplain('word', w)} aria-label={`Explain sign for ${w}`}>
+              Explain
             </button>
         </div>
     );
@@ -196,6 +221,20 @@ function LearnSign() {
           />
         </div>
       </div>
+
+      <Modal show={explainModal.show} onHide={() => setExplainModal(prev => ({ ...prev, show: false }))} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Explain sign: {explainModal.value}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {explainModal.loading && <p className="text-muted">Asking AI...</p>}
+          {explainModal.error && <p className="text-danger">{explainModal.error}</p>}
+          {!explainModal.loading && explainModal.explanation && <p className="mb-0">{explainModal.explanation}</p>}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setExplainModal(prev => ({ ...prev, show: false }))}>Close</Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   )
 }

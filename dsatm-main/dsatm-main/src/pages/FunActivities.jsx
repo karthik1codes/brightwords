@@ -185,6 +185,7 @@ const FunActivities = () => {
               <button
                 key={activity.id}
                 className={`activity-tile ${isActive ? 'active' : ''}`}
+                data-activity={activity.id}
                 onClick={() => {
                   playClick()
                   speak(`Clicking ${activity.title}. ${activity.description}`)
@@ -207,7 +208,7 @@ const FunActivities = () => {
           })}
         </section>
 
-        <section className="activity-detail" aria-labelledby="activityTitle" aria-live="polite">
+        <section className="activity-detail" aria-labelledby="activityTitle" aria-live="polite" data-activity={activeId}>
           <div className="detail-header">
             <h2 id="activityTitle">{activeActivity.title}</h2>
             <p className="detail-desc">{activeActivity.description}</p>

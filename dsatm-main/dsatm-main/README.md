@@ -51,6 +51,8 @@ A comprehensive accessibility-focused web application with sign language learnin
    ```
    Edit `.env` and add `GROQ_API_KEY` (optional; get one at https://console.groq.com). On Windows you can run `.\create-env.ps1` instead to create `.env` interactively.
 
+   **Optional – AI signing video:** To enable the "AI signing video" button (text → sign-language video): use the **free ISL** option (Indian Sign Language) by setting `SIGN_VIDEO_PROVIDER=isl` and running `backend/sign-video-isl/server.py` (after `python setup_isl.py`), or use a paid ASL/BSL provider (Sign-Speak/Signapse). See `backend/SIGN_VIDEO_SETUP.md` for details.
+
 ### Running the Application
 
 #### Option 1: Using Batch Files (Windows)

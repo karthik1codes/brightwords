@@ -8,7 +8,7 @@ const COMMANDS = [
   { patterns: [/go (to )?home|home page|main page|dashboard/i], response: 'Opening home.', path: '/home' },
   { patterns: [/go to learn|open learn|learn (page)?/i], response: 'Opening Learn.', path: '/funactivities' },
   { patterns: [/sign language|sign language (page)?|open sign/i], response: 'Opening Sign Language.', path: '/signlanguage' },
-  { patterns: [/progress|my progress|see progress/i], response: 'Showing your progress.', path: '/home#progress' },
+  { patterns: [/progress|my progress|see progress/i], response: 'Opening home.', path: '/home' },
   { patterns: [/feedback|give feedback|feedback page/i], response: 'Opening Feedback.', path: '/feedback' },
   { patterns: [/super ?power|superpower/i], response: 'Opening SuperPower.', path: '/superpower' },
   { patterns: [/communities?|community|parents?/i], response: 'You can find Communities in the menu on the home page.', path: null },

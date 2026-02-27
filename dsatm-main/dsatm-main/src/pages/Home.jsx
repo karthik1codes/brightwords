@@ -15,13 +15,6 @@ const Home = () => {
   const { currentUser, signOut } = useAuth()
   const announce = useAnnouncement()
   const [selectedCategory, setSelectedCategory] = useState(null)
-  const [stats, setStats] = useState({
-    totalPoints: 0,
-    lessonsComplete: 0,
-    achievements: 0,
-    timeSpent: 0,
-    streak: 0,
-  })
   const [showSettings, setShowSettings] = useState(false)
   const [currentCarouselIndex, setCurrentCarouselIndex] = useState(0)
   const galleryRef = useRef(null)
@@ -92,29 +85,6 @@ const Home = () => {
       caption: 'Soothing patterns and rhythmic motion help reduce sensory overload and keep learning stress-free.',
     },
   ]
-
-  // Fetch stats from backend (no localStorage). Uses relative /api so Vite proxies to backend; when backend is down we keep default stats and avoid console errors.
-  useEffect(() => {
-    const fetchStats = async () => {
-      if (!currentUser?.email) return
-      try {
-        const q = new URLSearchParams({ name: currentUser.name || currentUser.given_name || '' }).toString()
-        const res = await fetch(`/api/stats/${encodeURIComponent(currentUser.email)}?${q}`)
-        if (!res.ok) return
-        const data = await res.json()
-        setStats({
-          totalPoints: data.total_points || 0,
-          lessonsComplete: data.lessons_complete || 0,
-          achievements: data.achievements || 0,
-          timeSpent: data.time_spent || 0,
-          streak: data.streak || 0,
-        })
-      } catch {
-        // Backend may be offline; keep default stats, no console output
-      }
-    }
-    fetchStats()
-  }, [currentUser])
 
   // Page load announcement
   useEffect(() => {
@@ -551,29 +521,6 @@ const Home = () => {
             </div>
           </section>
 
-          {/* Stats Dashboard */}
-          <div className="stats-container" id="progress" role="region" aria-label="Learner statistics">
-            <div className="stat-card">
-              <div className="stat-icon" aria-hidden="true">⭐</div>
-              <div className="stat-value">{stats.totalPoints}</div>
-              <div className="stat-label">Total Points</div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-icon" aria-hidden="true">📚</div>
-              <div className="stat-value">{stats.lessonsComplete}</div>
-              <div className="stat-label">Lessons Complete</div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-icon" aria-hidden="true">🏆</div>
-              <div className="stat-value">{stats.achievements}</div>
-              <div className="stat-label">Achievements</div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-icon" aria-hidden="true">⏱️</div>
-              <div className="stat-value">{stats.timeSpent}m</div>
-              <div className="stat-label">Time Today</div>
-            </div>
-          </div>
         </main>
 
         <footer className="site-footer" role="contentinfo" aria-label="Site footer">

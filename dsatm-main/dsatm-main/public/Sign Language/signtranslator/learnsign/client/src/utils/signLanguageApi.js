@@ -32,6 +32,15 @@ export async function signLanguageFetch(url, options = {}) {
   return data;
 }
 
+/**
+ * Base URL for BrightWords backend API (explain, gloss, video, etc.).
+ * When embedded in BrightWords, use same origin so /api is proxied to the backend.
+ * REACT_APP_AI_API_BASE can override (e.g. http://localhost:3000) if needed.
+ */
 export function getAiApiBase() {
-  return (process.env.REACT_APP_AI_API_BASE || '').replace(/\/$/, '');
+  const env = (process.env.REACT_APP_AI_API_BASE || '').trim().replace(/\/$/, '');
+  if (env) return env;
+  if (typeof window !== 'undefined' && window.location && window.location.origin)
+    return window.location.origin;
+  return '';
 }

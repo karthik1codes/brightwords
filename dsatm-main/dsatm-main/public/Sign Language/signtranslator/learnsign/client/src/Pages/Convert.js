@@ -1,6 +1,7 @@
 import '../App.css'
 import React, { useState, useEffect, useRef } from "react";
 import Slider from 'react-input-slider';
+import { Modal } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'font-awesome/css/font-awesome.min.css';
 
@@ -29,6 +30,11 @@ function Convert() {
   const [glosses, setGlosses] = useState([]);
   const [loadingNormalize, setLoadingNormalize] = useState(false);
   const [loadingGloss, setLoadingGloss] = useState(false);
+  const [loadingAnimateAi, setLoadingAnimateAi] = useState(false);
+  const [loadingVideo, setLoadingVideo] = useState(false);
+  const [videoUrl, setVideoUrl] = useState(null);
+  const [videoError, setVideoError] = useState('');
+  const [showVideoModal, setShowVideoModal] = useState(false);
 
   const componentRef = useRef({});
   const { current: ref } = componentRef;
@@ -97,7 +103,12 @@ function Convert() {
 
   ref.animate = () => {
     if(ref.animations.length === 0){
-        ref.pending = false;
+      ref.pending = false;
+      if (ref.onAnimationComplete) {
+        const fn = ref.onAnimationComplete;
+        ref.onAnimationComplete = null;
+        fn();
+      }
       return ;
     }
     requestAnimationFrame(ref.animate);
@@ -203,6 +214,113 @@ function Convert() {
     }
   };
 
+  /** Generate sign sequence using AI (glosses) and run the 3D avatar animation. */
+  const handleAnimateWithAi = async () => {
+    const raw = (textFromInput.current?.value || audioInput || '').trim();
+    if (!raw) {
+      setAiMessage('Enter or speak some text first.');
+      return;
+    }
+    setLoadingAnimateAi(true);
+    setAiMessage('');
+    setGlosses([]);
+    try {
+      const data = await signLanguageFetch(`${base}/api/sign-language/gloss`, {
+        method: 'POST',
+        body: JSON.stringify({ text: raw }),
+      });
+      const glossList = Array.isArray(data.glosses) ? data.glosses : [];
+      setGlosses(glossList);
+      if (glossList.length === 0) {
+        setAiMessage('AI could not generate a sign sequence. Try different text.');
+        return;
+      }
+      const glossString = glossList.join(' ');
+      setAiMessage('Animating from AI-generated sign sequence.');
+      sign(glossString);
+    } catch (err) {
+      setAiMessage('AI sign error: ' + (err.message || 'Could not generate signs'));
+    } finally {
+      setLoadingAnimateAi(false);
+    }
+  };
+
+  /** Generate gloss with AI, run 3D avatar with that gloss, record the canvas into a video, show in modal. */
+  const handleGenerateVideo = async () => {
+    const raw = (textFromInput.current?.value || audioInput || '').trim();
+    if (!raw) {
+      setVideoError('Enter or speak some text first.');
+      setShowVideoModal(true);
+      return;
+    }
+    setLoadingVideo(true);
+    setVideoError('');
+    setVideoUrl(null);
+    setShowVideoModal(true);
+    const base = getAiApiBase();
+    try {
+      const data = await signLanguageFetch(`${base}/api/sign-language/gloss`, {
+        method: 'POST',
+        body: JSON.stringify({ text: raw }),
+      });
+      const glossList = Array.isArray(data.glosses) ? data.glosses : [];
+      if (glossList.length === 0) {
+        setVideoError('AI could not generate a sign sequence. Try different text.');
+        setLoadingVideo(false);
+        return;
+      }
+      if (!ref.renderer || !ref.avatar) {
+        setVideoError('Avatar not ready. Wait for the 3D avatar to load and try again.');
+        setLoadingVideo(false);
+        return;
+      }
+      const canvas = ref.renderer.domElement;
+      if (!canvas.captureStream) {
+        setVideoError('Recording not supported in this browser. Try Chrome or Firefox.');
+        setLoadingVideo(false);
+        return;
+      }
+      const stream = canvas.captureStream(30);
+      const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
+        ? 'video/webm;codecs=vp9'
+        : MediaRecorder.isTypeSupported('video/webm')
+          ? 'video/webm'
+          : '';
+      const recorderOpts = mimeType ? { mimeType, videoBitsPerSecond: 2500000 } : { videoBitsPerSecond: 2500000 };
+      const mediaRecorder = new MediaRecorder(stream, recorderOpts);
+      const chunks = [];
+      ref.recordingFailed = false;
+      mediaRecorder.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
+      mediaRecorder.onstop = () => {
+        setLoadingVideo(false);
+        if (!ref.recordingFailed) {
+          const blob = new Blob(chunks, { type: mediaRecorder.mimeType || 'video/webm' });
+          setVideoUrl(URL.createObjectURL(blob));
+        }
+      };
+      ref.onAnimationComplete = () => {
+        setTimeout(() => {
+          try {
+            if (mediaRecorder.state === 'recording') mediaRecorder.stop();
+          } catch (_) {}
+        }, 300);
+      };
+      mediaRecorder.start(100);
+      const glossString = glossList.join(' ');
+      try {
+        sign(glossString);
+      } catch (signErr) {
+        ref.onAnimationComplete = null;
+        ref.recordingFailed = true;
+        if (mediaRecorder.state === 'recording') mediaRecorder.stop();
+        setVideoError(signErr.message || 'Animation error. Some signs may not be available.');
+      }
+    } catch (err) {
+      setVideoError(err.message || 'Failed to generate signing video');
+      setLoadingVideo(false);
+    }
+  };
+
   return (
     <div className='container-fluid'>
       <div className='row'>
@@ -240,10 +358,16 @@ function Convert() {
             <button type="button" className="btn btn-outline-secondary btn-sm" onClick={handleGloss} disabled={loadingGloss}>
               {loadingGloss ? '...' : 'Show glosses'}
             </button>
+            <button type="button" className="btn btn-success btn-sm" onClick={handleAnimateWithAi} disabled={loadingAnimateAi} title="Generate sign sequence with AI and animate">
+              {loadingAnimateAi ? '...' : 'Animate with AI'}
+            </button>
+            <button type="button" className="btn btn-info btn-sm" onClick={handleGenerateVideo} disabled={loadingVideo} title="Generate ISL signing video (Indian Sign Language)">
+              {loadingVideo ? '...' : 'AI signing video'}
+            </button>
           </div>
           {aiMessage && <p className="small text-info mt-2 mb-0">{aiMessage}</p>}
           {glosses.length > 0 && <p className="small mt-2 mb-0"><strong>Glosses:</strong> {glosses.join(' → ')}</p>}
-          <button onClick={() => { sign(textFromInput.current.value); }} className='btn btn-primary w-100 btn-style btn-start mt-2'>
+          <button onClick={() => { sign(textFromInput.current?.value || ''); }} className='btn btn-primary w-100 btn-style btn-start mt-2'>
             Start Animations
           </button>
         </div>
@@ -282,6 +406,27 @@ function Convert() {
           />
         </div>
       </div>
+
+      <Modal show={showVideoModal} onHide={() => setShowVideoModal(false)} centered size="lg">
+        <Modal.Header closeButton>
+          <Modal.Title>AI signing video</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {loadingVideo && <p className="text-muted">Generating signing video… This may take a minute.</p>}
+          {videoError && !loadingVideo && <p className="text-danger">{videoError}</p>}
+          {videoUrl && !loadingVideo && (
+            <video
+              src={videoUrl}
+              controls
+              autoPlay
+              playsInline
+              className="w-100"
+              style={{ maxHeight: '70vh' }}
+              title="AI-generated sign language video"
+            />
+          )}
+        </Modal.Body>
+      </Modal>
     </div>
   )
 }

@@ -69,26 +69,6 @@ const Navigation = ({ onStartLearning, onOpenSettings, onOpenParents }) => {
             Learn
           </Link>
           <Link
-            to={location.pathname === '/home' ? '#progress' : '/home#progress'}
-            className="nav-item"
-            role="menuitem"
-            onClick={(e) => {
-              playClick()
-              speak('Clicking Progress. Navigating to Progress section.')
-              // Smooth scroll when already on home
-              if (location.pathname === '/home') {
-                e.preventDefault()
-                const progressSection = document.getElementById('progress')
-                if (progressSection) {
-                  progressSection.scrollIntoView({ behavior: 'smooth', block: 'start' })
-                }
-              }
-            }}
-            onFocus={() => speak('Progress navigation link')}
-          >
-            Progress
-          </Link>
-          <Link
             to="/signlanguage"
             className="nav-item"
             role="menuitem"

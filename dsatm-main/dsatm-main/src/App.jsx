@@ -7,6 +7,7 @@ import PublicRoute from './components/PublicRoute'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
 import Home from './pages/Home'
+import ProgressSummary from './pages/ProgressSummary'
 import FunActivities from './pages/FunActivities'
 import BrightWords from './pages/BrightWords'
 import SuperPower from './pages/SuperPower'
@@ -67,7 +68,14 @@ function AppRoutes() {
           </ProtectedRoute>
         } 
       />
-      
+      <Route 
+        path="/progress-summary" 
+        element={
+          <ProtectedRoute>
+            <ProgressSummary />
+          </ProtectedRoute>
+        } 
+      />
       {/* Root path redirects to /home */}
       <Route 
         path="/" 

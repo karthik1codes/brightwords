@@ -111,16 +111,16 @@ export const AuthProvider = ({ children }) => {
         // Continue anyway - state is set
       }
       
-      // Navigate to home after state is set
+      // Navigate to progress summary after state is set
       // Use requestAnimationFrame to ensure React has processed the state update
       if (navigate && typeof navigate === 'function') {
         requestAnimationFrame(() => {
           try {
-            navigate("/home", { replace: true })
+            navigate("/progress-summary", { replace: true })
           } catch (navError) {
             console.error('Navigation error:', navError)
             // Fallback: use window.location if navigate fails
-            window.location.href = '/home'
+            window.location.href = '/progress-summary'
           }
         })
       }

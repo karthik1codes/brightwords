@@ -50,7 +50,7 @@ const Navigation = ({ onStartLearning, onOpenSettings, onOpenParents }) => {
           }}
           onFocus={() => speak('BrightWords logo')}
         >
-          <div className="logo-icon" aria-hidden="true">✨</div>
+          <img src="/logo.png" alt="BrightWords" className="logo-img" />
           <span>BrightWords</span>
         </Link>
 

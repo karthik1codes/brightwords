@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAnnouncement } from '../hooks/useAnnouncement'
 import { speak } from '../utils/voice'
 import { playClick, playSuccess } from '../utils/sound'
@@ -72,8 +72,11 @@ const storageKey = 'brightwords_funactivities_progress'
 
 const FunActivities = () => {
   const location = useLocation()
+  const navigate = useNavigate()
   const announce = useAnnouncement()
-  const [activeId, setActiveId] = useState('phonics')
+  const hashFromUrl = (location.hash || '').replace('#', '')
+  const initialId = defaultActivities.some((a) => a.id === hashFromUrl) ? hashFromUrl : 'phonics'
+  const [activeId, setActiveId] = useState(initialId)
   const [progress, setProgress] = useState({})
 
   useEffect(() => {
@@ -180,6 +183,7 @@ const FunActivities = () => {
                   playClick()
                   speak(`Clicking ${activity.title}. ${activity.description}`)
                   setActiveId(activity.id)
+                  navigate(`/funactivities#${activity.id}`, { replace: true })
                   announce(`${activity.title} selected`)
                 }}
                 aria-pressed={isActive}

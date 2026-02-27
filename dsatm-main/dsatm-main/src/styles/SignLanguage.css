@@ -94,112 +94,6 @@
   margin: 0;
 }
 
-/* Subscription Modal Styles */
-.subscription-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 20px;
-  box-sizing: border-box;
-}
-
-.subscription-modal {
-  background: white;
-  border-radius: 20px;
-  padding: 40px;
-  max-width: 500px;
-  width: 100%;
-  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.3);
-  position: relative;
-  text-align: center;
-}
-
-.subscription-modal .emoji {
-  font-size: 64px;
-  margin-bottom: 16px;
-}
-
-.subscription-modal h2 {
-  font-size: 28px;
-  font-weight: 700;
-  color: #0f172a;
-  margin: 0 0 16px 0;
-}
-
-.subscription-modal p {
-  font-size: 16px;
-  color: #475569;
-  line-height: 1.6;
-  margin: 0 0 32px 0;
-}
-
-.modal-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.modal-button {
-  padding: 14px 24px;
-  border-radius: 12px;
-  font-size: 16px;
-  font-weight: 700;
-  cursor: pointer;
-  border: none;
-  transition: all 0.2s ease;
-}
-
-.modal-button.primary {
-  background: linear-gradient(135deg, #7c3aed, #a855f7);
-  color: white;
-}
-
-.modal-button.primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(124, 58, 237, 0.4);
-}
-
-.modal-button.secondary {
-  background: white;
-  color: #7c3aed;
-  border: 2px solid #7c3aed;
-}
-
-.modal-button.secondary:hover {
-  background: #f5f3ff;
-}
-
-.modal-close {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: none;
-  background: #f1f5f9;
-  color: #475569;
-  font-size: 24px;
-  line-height: 1;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-}
-
-.modal-close:hover {
-  background: #e2e8f0;
-  color: #0f172a;
-}
-
 /* Responsive Design */
 @media (max-width: 768px) {
   .sign-language-header {
@@ -215,14 +109,6 @@
   .sign-language-container {
     height: calc(100vh - 250px);
     min-height: 500px;
-  }
-
-  .subscription-modal {
-    padding: 32px 24px;
-  }
-
-  .subscription-modal h2 {
-    font-size: 24px;
   }
 }
 

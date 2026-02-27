@@ -154,7 +154,7 @@ const Home = () => {
     playClick()
     speak('Clicking Phonics Fun. Opening Phonics Fun activity.')
     announce('Opening Phonics Fun activity')
-    navigate('/funactivities')
+    navigate('/funactivities#phonics')
   }
 
   const handleWatchDemo = () => {
@@ -498,26 +498,53 @@ const Home = () => {
                 </div>
               )}
 
-              {selectedCategory && selectedCategory !== 'blind' && selectedCategory !== 'neurodiverse' && (
+              {selectedCategory === 'general' && (
                 <div className="support-widget" style={{ padding: '28px', textAlign: 'left' }}>
                   <h3 style={{ color: '#1f2937', marginBottom: '12px' }}>
-                    Personalized tools for {selectedCategory === 'deaf' ? 'Deaf / Hard of Hearing' : selectedCategory === 'neurodiverse' ? 'Games' : 'General learners'}
+                    🌈 Activities for General Learner
                   </h3>
-                  <p style={{ color: '#4b5563', marginBottom: '12px', lineHeight: 1.6 }}>
-                    Continue exploring activities tailored to this profile. Try Fun Activities to get started.
+                  <p style={{ color: '#4b5563', marginBottom: '16px', lineHeight: 1.6 }}>
+                    Try phonics, spelling, and more. Pick an activity to start practicing.
                   </p>
-                  <button
-                    className="btn-secondary"
-                    onClick={() => {
-                      playClick()
-                      speak('Clicking Explore Fun Activities. Navigating to activities page.')
-                      navigate('/funactivities')
-                    }}
-                    onFocus={() => speak('Explore Fun Activities button')}
-                    aria-label="Go to Fun Activities"
-                  >
-                    Explore Fun Activities
-                  </button>
+                  <div style={{ display: 'grid', gap: '12px' }}>
+                    <button
+                      className="btn-primary"
+                      onClick={() => {
+                        playClick()
+                        speak('Clicking Phonics Fun. Opening Phonics Fun activity.')
+                        announce('Opening Phonics Fun activity')
+                        navigate('/funactivities#phonics')
+                      }}
+                      onFocus={() => speak('Phonics Fun button')}
+                      aria-label="Start Phonics Fun activity"
+                    >
+                      🔤 Phonics Fun
+                    </button>
+                    <button
+                      className="btn-secondary"
+                      onClick={() => {
+                        playClick()
+                        speak('Clicking Spelling Wizard. Navigating to Spelling Wizard activity.')
+                        navigate('/funactivities#spelling')
+                      }}
+                      onFocus={() => speak('Spelling Wizard button')}
+                      aria-label="Start Spelling Wizard"
+                    >
+                      ✏️ Spelling Wizard
+                    </button>
+                    <button
+                      className="btn-secondary"
+                      onClick={() => {
+                        playClick()
+                        speak('Clicking Explore all fun activities. Navigating to activities page.')
+                        navigate('/funactivities')
+                      }}
+                      onFocus={() => speak('Explore all fun activities button')}
+                      aria-label="Explore all fun activities"
+                    >
+                      Explore all fun activities
+                    </button>
+                  </div>
                 </div>
               )}
             </div>

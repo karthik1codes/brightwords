@@ -121,17 +121,11 @@ function Feedback() {
           role="button"
           tabIndex={0}
         >
-          <div style={{
-            width: '40px',
-            height: '40px',
-            background: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
-            borderRadius: '10px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '24px',
-            flexShrink: 0
-          }}>✨</div>
+          <img 
+            src="/logo.png" 
+            alt="BrightWords" 
+            style={{ width: '40px', height: '40px', objectFit: 'contain', flexShrink: 0 }} 
+          />
           <span style={{ 
             fontFamily: "'Fredoka', cursive", 
             fontSize: 'clamp(18px, 4vw, 24px)', 

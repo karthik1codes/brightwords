@@ -12,7 +12,6 @@ import BrightWords from './pages/BrightWords'
 import SuperPower from './pages/SuperPower'
 import Feedback from './pages/Feedback'
 import SignLanguage from './pages/SignLanguage'
-import Subscription from './pages/Subscription'
 
 // Catch-all route component that checks authentication
 function CatchAllRoute() {
@@ -89,14 +88,6 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <SignLanguage />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/subscription" 
-        element={
-          <ProtectedRoute>
-            <Subscription />
           </ProtectedRoute>
         } 
       />

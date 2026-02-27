@@ -40,6 +40,13 @@
   font-size: 22px;
 }
 
+.logo-img {
+  height: 42px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+
 .logo:hover {
   text-decoration: none;
 }

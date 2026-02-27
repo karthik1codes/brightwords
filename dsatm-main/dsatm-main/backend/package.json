@@ -1,7 +1,7 @@
 {
-  "name": "brightwords-subscription-api",
+  "name": "brightwords-api",
   "version": "1.0.0",
-  "description": "Backend API for BrightWords subscription management",
+  "description": "Backend API for BrightWords (auth, stats, Sign Language & Fun Activities AI)",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -11,17 +11,16 @@
     "express": "^4.18.2",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
-    "razorpay": "^2.9.2",
     "sqlite3": "^5.1.6"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
   },
   "keywords": [
-    "subscription",
-    "razorpay",
-    "upi",
-    "payment"
+    "brightwords",
+    "api",
+    "groq",
+    "sign-language"
   ],
   "author": "",
   "license": "ISC"

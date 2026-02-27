@@ -79,7 +79,7 @@ export default function PhonicsFun({ onFocus }) {
         <span>Slow mode</span>
       </label>
       <button type="button" className="btn btn-secondary" onClick={handleExplain} style={{ marginBottom: 12 }}>
-        Explain this sound (AI)
+        Explain this sound
       </button>
       <div className="phonics-grid" role="list">
         {LETTERS.map((letter) => (

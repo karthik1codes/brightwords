@@ -72,7 +72,7 @@ export default function MemoryMaster({ onFocus }) {
       <p className="activity-instruction">Click two cards to find matching pairs. Matches: {matched.length} of {EMOJI_PAIRS.length}</p>
       {!allMatched && firstUnmatched && (
         <button type="button" className="btn btn-secondary" onClick={handleGetHint} disabled={hintUsed} style={{ marginBottom: 12 }}>
-          {hintUsed ? 'Hint used' : 'Get a hint (AI)'}
+          {hintUsed ? 'Hint used' : 'Get a hint'}
         </button>
       )}
       {allMatched && (

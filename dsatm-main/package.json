@@ -1,0 +1,14 @@
+{
+  "name": "dsatm-main",
+  "version": "1.0.0",
+  "private": true,
+  "description": "BrightWords app root – run scripts from dsatm-main subfolder",
+  "scripts": {
+    "dev": "npm run dev --prefix dsatm-main",
+    "start": "npm run start --prefix dsatm-main",
+    "build": "npm run build --prefix dsatm-main",
+    "preview": "npm run preview --prefix dsatm-main",
+    "install:app": "npm install --prefix dsatm-main",
+    "build:signlanguage": "npm run build:signlanguage --prefix dsatm-main"
+  }
+}

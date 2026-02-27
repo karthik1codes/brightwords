@@ -10,9 +10,9 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
-// Configure CORS to allow requests from localhost:8000
+// Configure CORS to allow requests from main app and Sign Language client
 app.use(cors({
-    origin: ['http://localhost:8000', 'http://127.0.0.1:8000', 'http://localhost:9000'],
+    origin: ['http://localhost:8000', 'http://127.0.0.1:8000', 'http://localhost:9000', 'http://localhost:3001'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
@@ -219,6 +219,44 @@ function generateReceiptId(userEmail, planType) {
     
     return finalReceipt;
 }
+
+// ========== Groq LLM helper for Sign Language AI features (free tier: Llama 3.1 8B, etc.) ==========
+const GROQ_API_KEY = process.env.GROQ_API_KEY;
+const GROQ_MODEL = process.env.GROQ_MODEL || 'llama-3.1-8b-instant'; // free tier; or llama-3.3-70b-versatile, qwen2-72b-instant
+const GROQ_BASE = 'https://api.groq.com/openai/v1';
+
+async function llmChat(systemPrompt, userMessage, maxTokens = 300) {
+    if (!GROQ_API_KEY) {
+        throw new Error('GROQ_API_KEY is not set in environment. Get a free key at https://console.groq.com');
+    }
+    const res = await fetch(`${GROQ_BASE}/chat/completions`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${GROQ_API_KEY}`,
+        },
+        body: JSON.stringify({
+            model: GROQ_MODEL,
+            messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: userMessage },
+            ],
+            max_tokens: maxTokens,
+            temperature: 0.4,
+        }),
+    });
+    if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`Groq API error ${res.status}: ${errText}`);
+    }
+    const data = await res.json();
+    const content = data.choices?.[0]?.message?.content?.trim();
+    if (!content) throw new Error('Empty response from Groq');
+    return content;
+}
+
+// Known signs (words + letters) for prompts
+const KNOWN_WORDS = ['TIME', 'HOME', 'PERSON', 'YOU'];
 
 // API Routes
 
@@ -1060,6 +1098,91 @@ app.get('/api/subscription/history', (req, res) => {
     } catch (error) {
         console.error('Error fetching subscription history:', error);
         res.status(500).json({ error: 'Failed to fetch subscription history' });
+    }
+});
+
+// ========== Sign Language AI (Groq) routes ==========
+
+app.post('/api/sign-language/explain', async (req, res) => {
+    try {
+        const { type, value } = req.body || {};
+        if (!value || typeof value !== 'string') {
+            return res.status(400).json({ error: 'Missing or invalid body: { type, value }' });
+        }
+        const kind = type === 'letter' ? 'letter' : 'word';
+        const systemPrompt = 'You are a friendly Indian Sign Language (ISL) tutor. In 1 to 2 short sentences, explain how to perform or remember this sign. Use simple, clear language. Do not use markdown.';
+        const userMessage = kind === 'letter'
+            ? `Explain the sign for the letter "${value.toUpperCase()}" (single character).`
+            : `Explain the sign for the word "${value.toUpperCase()}".`;
+        const explanation = await llmChat(systemPrompt, userMessage, 150);
+        return res.json({ explanation });
+    } catch (err) {
+        console.error('Sign-language explain error:', err.message);
+        return res.status(500).json({
+            error: err.message || 'Failed to get explanation',
+            details: GROQ_API_KEY ? undefined : 'GROQ_API_KEY not set in backend .env',
+        });
+    }
+});
+
+app.post('/api/sign-language/normalize', async (req, res) => {
+    try {
+        const { text } = req.body || {};
+        if (typeof text !== 'string') {
+            return res.status(400).json({ error: 'Missing or invalid body: { text }' });
+        }
+        const systemPrompt = `You are a text normalizer for a sign language app. We have full signs only for these words: ${KNOWN_WORDS.join(', ')}. All other words are fingerspelled letter by letter.
+Tasks: (1) Normalize the user text: fix typos, expand contractions (e.g. "gonna" -> "going to"), correct grammar. (2) List which words from the user text are in our sign list (${KNOWN_WORDS.join(', ')}).
+Respond in exactly this JSON format, no other text: {"normalizedText":"...", "suggestedWords":["WORD1","WORD2"], "message":"Short hint for the user about which words have full signs."}`;
+        const raw = await llmChat(systemPrompt, `User text: ${text}`, 250);
+        const jsonMatch = raw.match(/\{[\s\S]*\}/);
+        const parsed = jsonMatch ? JSON.parse(jsonMatch) : { normalizedText: text, suggestedWords: [], message: '' };
+        const normalizedText = parsed.normalizedText || text;
+        const suggestedWords = Array.isArray(parsed.suggestedWords) ? parsed.suggestedWords : [];
+        const message = parsed.message || (suggestedWords.length ? `We have full signs for: ${suggestedWords.join(', ')}.` : '');
+        return res.json({ normalizedText, suggestedWords, message });
+    } catch (err) {
+        console.error('Sign-language normalize error:', err.message);
+        return res.status(500).json({
+            error: err.message || 'Failed to normalize',
+            normalizedText: req.body?.text || '',
+            suggestedWords: [],
+            message: '',
+        });
+    }
+});
+
+app.post('/api/sign-language/gloss', async (req, res) => {
+    try {
+        const { text } = req.body || {};
+        if (typeof text !== 'string') {
+            return res.status(400).json({ error: 'Missing or invalid body: { text }' });
+        }
+        const systemPrompt = `You are an Indian Sign Language (ISL) expert. Given an English sentence, output a sequence of sign glosses (one per sign). Use CAPITALIZED words for known signs. For fingerspelling, use single capital letters separated by spaces.
+Our app has full signs only for these words: ${KNOWN_WORDS.join(', ')}. For any other word, either use a standard ISL gloss if you know one, or output the letters for fingerspelling (e.g. "J O H N").
+Respond with a JSON array only, no other text. Example: ["HELLO","MY","NAME","J","O","H","N"]`;
+        const raw = await llmChat(systemPrompt, `Sentence: ${text}`, 200);
+        const arrMatch = raw.match(/\[[\s\S]*\]/);
+        const glosses = arrMatch ? JSON.parse(arrMatch) : [];
+        return res.json({ glosses: Array.isArray(glosses) ? glosses : [] });
+    } catch (err) {
+        console.error('Sign-language gloss error:', err.message);
+        return res.status(500).json({ error: err.message || 'Failed to get glosses', glosses: [] });
+    }
+});
+
+app.post('/api/sign-language/chat', async (req, res) => {
+    try {
+        const { message } = req.body || {};
+        if (typeof message !== 'string' || !message.trim()) {
+            return res.status(400).json({ error: 'Missing or invalid body: { message }' });
+        }
+        const systemPrompt = `You are a friendly Indian Sign Language (ISL) tutor for the BrightWords app. We have signs for: letters A-Z, and these words: ${KNOWN_WORDS.join(', ')}. For other concepts, suggest fingerspelling or a short explanation. Keep answers brief (2-4 sentences). Do not use markdown. If the user asks about a sign we have, suggest they try "Learn Sign" for that word or letter.`;
+        const reply = await llmChat(systemPrompt, message.trim(), 200);
+        return res.json({ reply });
+    } catch (err) {
+        console.error('Sign-language chat error:', err.message);
+        return res.status(500).json({ error: err.message || 'Failed to get reply', reply: '' });
     }
 });
 

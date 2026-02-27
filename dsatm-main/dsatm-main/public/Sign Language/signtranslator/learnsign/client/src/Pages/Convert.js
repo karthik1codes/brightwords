@@ -12,6 +12,7 @@ import ybotPic from '../Models/ybot/ybot.png';
 import * as words from '../Animations/words';
 import * as alphabets from '../Animations/alphabets';
 import { defaultPose } from '../Animations/defaultPose';
+import { signLanguageFetch, getAiApiBase } from '../utils/signLanguageApi';
 
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
@@ -24,6 +25,10 @@ function Convert() {
   const [speed, setSpeed] = useState(0.1);
   const [pause, setPause] = useState(800);
   const [audioInput, setAudioInput] = useState("");
+  const [aiMessage, setAiMessage] = useState("");
+  const [glosses, setGlosses] = useState([]);
+  const [loadingNormalize, setLoadingNormalize] = useState(false);
+  const [loadingGloss, setLoadingGloss] = useState(false);
 
   const componentRef = useRef({});
   const { current: ref } = componentRef;
@@ -160,6 +165,44 @@ function Convert() {
     SpeechRecognition.stopListening();
   }
 
+  const base = getAiApiBase();
+  const handleNormalize = async () => {
+    const raw = (textFromInput.current?.value || audioInput || '').trim();
+    if (!raw) return;
+    setLoadingNormalize(true);
+    setAiMessage('');
+    try {
+      const data = await signLanguageFetch(`${base}/api/sign-language/normalize`, {
+        method: 'POST',
+        body: JSON.stringify({ text: raw }),
+      });
+      if (data.normalizedText && textFromInput.current) textFromInput.current.value = data.normalizedText;
+      setAiMessage(data.message || 'Text normalized. You can run the animation with the updated text.');
+    } catch (err) {
+      setAiMessage('Error: ' + (err.message || 'Could not normalize'));
+    } finally {
+      setLoadingNormalize(false);
+    }
+  };
+  const handleGloss = async () => {
+    const raw = (textFromInput.current?.value || audioInput || '').trim();
+    if (!raw) return;
+    setLoadingGloss(true);
+    setGlosses([]);
+    try {
+      const data = await signLanguageFetch(`${base}/api/sign-language/gloss`, {
+        method: 'POST',
+        body: JSON.stringify({ text: raw }),
+      });
+      setGlosses(Array.isArray(data.glosses) ? data.glosses : []);
+    } catch (err) {
+      setGlosses([]);
+      setAiMessage('Gloss error: ' + (err.message || 'Could not get glosses'));
+    } finally {
+      setLoadingGloss(false);
+    }
+  };
+
   return (
     <div className='container-fluid'>
       <div className='row'>
@@ -190,7 +233,17 @@ function Convert() {
             Text Input
           </label>
           <textarea rows={3} ref={textFromInput} placeholder='Text input ...' className='w-100 input-style' />
-          <button onClick={() => { sign(textFromInput.current.value); }} className='btn btn-primary w-100 btn-style btn-start'>
+          <div className="d-flex gap-2 mt-2 flex-wrap">
+            <button type="button" className="btn btn-outline-primary btn-sm" onClick={handleNormalize} disabled={loadingNormalize}>
+              {loadingNormalize ? '...' : 'Normalize with AI'}
+            </button>
+            <button type="button" className="btn btn-outline-secondary btn-sm" onClick={handleGloss} disabled={loadingGloss}>
+              {loadingGloss ? '...' : 'Show glosses'}
+            </button>
+          </div>
+          {aiMessage && <p className="small text-info mt-2 mb-0">{aiMessage}</p>}
+          {glosses.length > 0 && <p className="small mt-2 mb-0"><strong>Glosses:</strong> {glosses.join(' → ')}</p>}
+          <button onClick={() => { sign(textFromInput.current.value); }} className='btn btn-primary w-100 btn-style btn-start mt-2'>
             Start Animations
           </button>
         </div>

@@ -53,9 +53,13 @@ export default function SpellingWizard({ onFocus }) {
 
   const handleHint = () => {
     playClick()
+    if (hintUsed) return
     setHintUsed(true)
-    speak('First letter is ' + word[0].toUpperCase())
-    if (onFocus) onFocus('Hint: first letter ' + word[0])
+    const firstLetter = word[0]
+    setInput((prev) => prev.trim() === '' ? firstLetter : prev)
+    setFeedback(null)
+    speak('First letter is ' + firstLetter.toUpperCase())
+    if (onFocus) onFocus('Hint: first letter ' + firstLetter)
   }
 
   return (

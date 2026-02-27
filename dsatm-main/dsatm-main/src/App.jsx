@@ -10,6 +10,7 @@ import Home from './pages/Home'
 import ModeSelect from './pages/ModeSelect'
 import ProgressSummary from './pages/ProgressSummary'
 import FunActivities from './pages/FunActivities'
+import Games from './pages/Games'
 import BrightWords from './pages/BrightWords'
 import SuperPower from './pages/SuperPower'
 import Feedback from './pages/Feedback'
@@ -114,7 +115,15 @@ function AppRoutes() {
           <ProtectedRoute>
             <FunActivities />
           </ProtectedRoute>
-        } 
+        }
+      />
+      <Route 
+        path="/games/:gameId" 
+        element={
+          <ProtectedRoute>
+            <Games />
+          </ProtectedRoute>
+        }
       />
       
       <Route 

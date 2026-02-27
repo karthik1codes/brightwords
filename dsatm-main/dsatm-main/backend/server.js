@@ -712,10 +712,9 @@ app.post('/api/sign-language/gloss', async (req, res) => {
         if (typeof text !== 'string') {
             return res.status(400).json({ error: 'Missing or invalid body: { text }' });
         }
-        const systemPrompt = `You are an Indian Sign Language (ISL) expert. Given an English sentence, output a sequence of sign glosses (one per sign). Use CAPITALIZED words for known signs. For fingerspelling, use single capital letters separated by spaces.
-Our app has full signs only for these words: ${KNOWN_WORDS.join(', ')}. For any other word, either use a standard ISL gloss if you know one, or output the letters for fingerspelling (e.g. "J O H N").
-Respond with a JSON array only, no other text. Example: ["HELLO","MY","NAME","J","O","H","N"]`;
-        const raw = await llmChat(systemPrompt, `Sentence: ${text}`, 200);
+        const systemPrompt = `You are an Indian Sign Language (ISL) expert. Given an English sentence, output the exact sequence of signs for our avatar to perform.
+Rules: (1) We have full-word signs only for: ${KNOWN_WORDS.join(', ')}. Use these exact words when the meaning matches. (2) For all other words, output each letter as a separate item for fingerspelling (e.g. "JOHN" -> ["J","O","H","N"]). (3) Output only a JSON array of strings, no other text. Example for "Hi YOU": ["H","I","YOU"]. Example for "TIME HOME": ["TIME","HOME"].`;
+        const raw = await llmChat(systemPrompt, `Sentence: ${text}`, 300);
         const arrMatch = raw.match(/\[[\s\S]*\]/);
         const glosses = arrMatch ? JSON.parse(arrMatch) : [];
         return res.json({ glosses: Array.isArray(glosses) ? glosses : [] });
@@ -737,6 +736,28 @@ app.post('/api/sign-language/chat', async (req, res) => {
     } catch (err) {
         console.error('Sign-language chat error:', err.message);
         return res.status(500).json({ error: err.message || 'Failed to get reply', reply: '' });
+    }
+});
+
+// ---------- AI-generated sign language video (external providers: Sign-Speak, Signapse) ----------
+const { generateSignVideo, isSignVideoConfigured } = require('./signVideoProviders');
+
+app.get('/api/sign-language/video-enabled', (req, res) => {
+    res.json({ enabled: isSignVideoConfigured() });
+});
+
+app.post('/api/sign-language/generate-video', async (req, res) => {
+    try {
+        const { text } = req.body || {};
+        if (typeof text !== 'string' || !text.trim()) {
+            return res.status(400).json({ error: 'Missing or invalid body: { text }' });
+        }
+        const { videoUrl } = await generateSignVideo(text.trim());
+        return res.json({ videoUrl });
+    } catch (err) {
+        console.error('Sign-language generate-video error:', err.message);
+        const status = err.message.includes('not set') || err.message.includes('not configured') ? 503 : 500;
+        return res.status(status).json({ error: err.message || 'Failed to generate sign video', videoUrl: null });
     }
 });
 

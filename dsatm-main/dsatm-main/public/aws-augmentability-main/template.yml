@@ -48,7 +48,13 @@ Resources:
       GenerateSecret: false
       UserPoolId: !Ref UserPool
       CallbackURLs:
-        - https://console.aws.amazon.com
+        - http://localhost:8000/aws-augmentability-main/index-landing.html
+        - http://localhost:8001/aws-augmentability-main/index-landing.html
+        - http://127.0.0.1:8000/aws-augmentability-main/index-landing.html
+      LogoutURLs:
+        - http://localhost:8000/aws-augmentability-main/login.html
+        - http://localhost:8001/aws-augmentability-main/login.html
+        - http://127.0.0.1:8000/aws-augmentability-main/login.html
       SupportedIdentityProviders:
         - COGNITO
       AllowedOAuthFlowsUserPoolClient: True

@@ -1,57 +1,10 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useEffect } from 'react'
 import { playClick } from '../../utils/sound'
+import { storyGenerate } from '../../utils/funActivitiesApi'
 
 const SETTINGS = ['Forest', 'Castle', 'Space', 'Ocean', 'Garden']
 const CHARACTERS = ['Knight', 'Robot', 'Cat', 'Dragon', 'Explorer']
 const GOALS = ['Find a key', 'Save the queen', 'Get home', 'Discover treasure', 'Make a friend']
-
-function simpleHash(str) {
-  let h = 0
-  for (let i = 0; i < str.length; i++) h = ((h << 5) - h) + str.charCodeAt(i) | 0
-  return Math.abs(h)
-}
-
-function generateStory(setting, character, goal) {
-  const key = `${setting}-${character}-${goal}`
-  const h = simpleHash(key)
-  const goalLower = goal.toLowerCase()
-
-  const openings = [
-    `In a ${setting}, there lived a ${character} who dreamed of ${goalLower}.`,
-    `Once in a ${setting}, a ${character} decided it was time to ${goalLower}.`,
-    `Deep in the ${setting}, a ${character} had one big wish: to ${goalLower}.`,
-  ]
-  const seconds = [
-    `So one morning, ${character} set off on an adventure.`,
-    `${character} packed a bag and set out with hope.`,
-    `With courage, ${character} began the journey.`,
-  ]
-  const thirds = [
-    `The ${setting} was full of surprises and new sights.`,
-    `Along the way, ${character} met someone who offered to help.`,
-    `It was not always easy, but ${character} kept going.`,
-  ]
-  const fourths = [
-    `Then something unexpected happened that changed everything.`,
-    `Just when things looked hard, ${character} found a clue.`,
-    `A friendly face appeared and showed the way forward.`,
-  ]
-  const endings = [
-    `At last, ${character} reached the goal. ${character} had learned that ${goalLower} was possible all along.`,
-    `In the end, ${character}'s wish came true. What an adventure it had been!`,
-    `And so ${character} succeeded. The journey to ${goalLower} was complete.`,
-  ]
-
-  const i = (n) => (h + n) % 3
-  const sentences = [
-    openings[i(0)],
-    seconds[i(1)],
-    thirds[i(2)],
-    fourths[i(3)],
-    endings[i(4)],
-  ]
-  return sentences.join(' ')
-}
 
 function speakStory(text) {
   if (!window.speechSynthesis) return
@@ -67,10 +20,30 @@ export default function StoryCreator({ onFocus }) {
   const [character, setCharacter] = useState(null)
   const [goal, setGoal] = useState(null)
   const [dragging, setDragging] = useState(null)
+  const [story, setStory] = useState(null)
+  const [storyLoading, setStoryLoading] = useState(false)
+  const [storyError, setStoryError] = useState('')
 
-  const story = useMemo(() => {
-    if (!setting || !character || !goal) return null
-    return generateStory(setting, character, goal)
+  useEffect(() => {
+    if (!setting || !character || !goal) {
+      setStory(null)
+      setStoryError('')
+      return
+    }
+    let cancelled = false
+    setStoryLoading(true)
+    setStoryError('')
+    storyGenerate(setting, character, goal)
+      .then((text) => {
+        if (!cancelled) setStory(text || null)
+      })
+      .catch((err) => {
+        if (!cancelled) setStoryError(err.message || 'Could not generate story')
+      })
+      .finally(() => {
+        if (!cancelled) setStoryLoading(false)
+      })
+    return () => { cancelled = true }
   }, [setting, character, goal])
 
   const handleDragStart = (e, type, value) => {
@@ -100,6 +73,8 @@ export default function StoryCreator({ onFocus }) {
     setSetting(null)
     setCharacter(null)
     setGoal(null)
+    setStory(null)
+    setStoryError('')
   }
 
   return (
@@ -187,21 +162,27 @@ export default function StoryCreator({ onFocus }) {
           ))}
         </div>
       </div>
-      {story && (
+      {(story || storyLoading || storyError) && (
         <div className="story-result">
-          <div className="story-text story-text-long">
-            {story.split(/\.\s+/).filter(Boolean).map((sentence, i) => (
-              <p key={i}>{sentence}{sentence.endsWith('.') ? '' : '.'}</p>
-            ))}
-          </div>
-          <div className="story-actions">
-            <button type="button" className="btn btn-primary" onClick={readStory} onFocus={() => onFocus && onFocus('Read my story')}>
-              🔊 Read my story
-            </button>
-            <button type="button" className="btn btn-secondary" onClick={clearStory} onFocus={() => onFocus && onFocus('Start over')}>
-              Start over
-            </button>
-          </div>
+          {storyLoading && <p className="activity-feedback">Generating your story...</p>}
+          {storyError && <p className="activity-feedback error">{storyError}</p>}
+          {story && (
+            <>
+              <div className="story-text story-text-long">
+                {story.split(/\.\s+/).filter(Boolean).map((sentence, i) => (
+                  <p key={i}>{sentence}{sentence.endsWith('.') ? '' : '.'}</p>
+                ))}
+              </div>
+              <div className="story-actions">
+                <button type="button" className="btn btn-primary" onClick={readStory} onFocus={() => onFocus && onFocus('Read my story')}>
+                  🔊 Read my story
+                </button>
+                <button type="button" className="btn btn-secondary" onClick={clearStory} onFocus={() => onFocus && onFocus('Start over')}>
+                  Start over
+                </button>
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>

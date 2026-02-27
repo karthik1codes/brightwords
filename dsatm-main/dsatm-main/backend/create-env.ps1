@@ -18,25 +18,16 @@ if (Test-Path $envPath) {
     }
 }
 
-Write-Host "Optional: Razorpay credentials (press Enter to skip):" -ForegroundColor Gray
-$razorpayKeyId = Read-Host "Razorpay Key ID (or press Enter)"
-$razorpayKeySecret = Read-Host "Razorpay Key Secret (or press Enter)" -AsSecureString
-
-if ($razorpayKeySecret.Length -gt 0) {
-    $BSTR2 = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($razorpayKeySecret)
-    $razorpayKeySecretPlain = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR2)
-} else {
-    $razorpayKeySecretPlain = ""
-}
+Write-Host "Optional: Groq API key for Sign Language & Fun Activities AI - free tier at https://console.groq.com (press Enter to skip):" -ForegroundColor Gray
+$groqApiKey = Read-Host "Groq API Key (or press Enter)"
 
 # Create .env content
 $envContent = @"
 # BrightWords Backend Environment Variables
 # Generated on $(Get-Date -Format "yyyy-MM-dd HH:mm:ss")
 
-# Razorpay Payment Gateway (Optional)
-RAZORPAY_KEY_ID=$razorpayKeyId
-RAZORPAY_KEY_SECRET=$razorpayKeySecretPlain
+# Sign Language & Fun Activities AI - Groq LLM (Optional, free tier)
+GROQ_API_KEY=$groqApiKey
 
 # Server Port (Optional - defaults to 3000)
 PORT=3000
@@ -58,4 +49,3 @@ try {
     Write-Host "❌ Error creating .env file: $_" -ForegroundColor Red
     exit 1
 }
-

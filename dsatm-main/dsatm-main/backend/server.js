@@ -1,6 +1,5 @@
 const express = require('express');
 const cors = require('cors');
-const Razorpay = require('razorpay');
 const crypto = require('crypto');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
@@ -10,9 +9,9 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
-// Configure CORS to allow requests from localhost:8000
+// Configure CORS to allow requests from main app and Sign Language client
 app.use(cors({
-    origin: ['http://localhost:8000', 'http://127.0.0.1:8000', 'http://localhost:9000'],
+    origin: ['http://localhost:8000', 'http://127.0.0.1:8000', 'http://localhost:9000', 'http://localhost:3001', 'http://localhost:8001', 'http://127.0.0.1:8001'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
@@ -22,55 +21,13 @@ app.use(express.json());
 // IMPORTANT: API routes must be registered BEFORE static files
 // This ensures /api/* routes never fall through to static file serving
 
-// Initialize Razorpay
-const razorpay = new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID || 'YOUR_RAZORPAY_KEY_ID',
-    key_secret: process.env.RAZORPAY_KEY_SECRET || 'YOUR_RAZORPAY_KEY_SECRET'
-});
-
-// Log Razorpay initialization status
-if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
-    console.log('✅ Razorpay initialized with Key ID:', process.env.RAZORPAY_KEY_ID.substring(0, 15) + '...');
-} else {
-    console.warn('⚠️ Warning: Razorpay keys not found in environment variables!');
-}
-
 // Initialize SQLite Database
-const dbPath = path.join(__dirname, 'subscriptions.db');
+const dbPath = path.join(__dirname, 'app.db');
 const db = new sqlite3.Database(dbPath, (err) => {
     if (err) {
         console.error('Error opening database:', err.message);
     } else {
         console.log('Connected to SQLite database');
-        // Create tables if they don't exist
-        db.run(`CREATE TABLE IF NOT EXISTS subscriptions (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_email TEXT NOT NULL,
-            unified_user_id TEXT,
-            user_name TEXT,
-            plan_type TEXT NOT NULL,
-            status TEXT NOT NULL DEFAULT 'pending',
-            amount INTEGER NOT NULL,
-            currency TEXT DEFAULT 'INR',
-            razorpay_order_id TEXT,
-            razorpay_payment_id TEXT,
-            razorpay_signature TEXT,
-            start_date TEXT,
-            end_date TEXT,
-            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-            updated_at TEXT DEFAULT CURRENT_TIMESTAMP
-        )`, (err) => {
-            if (err) {
-                console.error('Error creating subscriptions table:', err.message);
-            } else {
-                console.log('Subscriptions table ready');
-                // Add unified_user_id column if it doesn't exist (for existing databases)
-                db.run(`ALTER TABLE subscriptions ADD COLUMN unified_user_id TEXT`, () => {
-                    // Ignore error if column already exists
-                });
-            }
-        });
-
         // User stats table (supports both email and unified_user_id)
         db.run(`CREATE TABLE IF NOT EXISTS user_stats (
             user_email TEXT PRIMARY KEY,
@@ -145,80 +102,43 @@ const db = new sqlite3.Database(dbPath, (err) => {
     }
 });
 
-// Plan configurations (amounts in paise)
-const PLANS = {
-    monthly: {
-        name: 'Monthly Plan',
-        amount: 9900, // ₹99
-        duration: 'monthly',
-        days: 30
-    },
-    yearly: {
-        name: 'Yearly Plan',
-        amount: 118800, // ₹1,188 (₹99 × 12)
-        duration: 'yearly',
-        days: 365
-    },
-    team_monthly: {
-        name: 'Team Monthly Plan',
-        amount: 150000, // ₹1,500
-        duration: 'monthly',
-        days: 30
-    },
-    team_yearly: {
-        name: 'Team Yearly Plan',
-        amount: 1800000, // ₹18,000 (₹1,500 × 12)
-        duration: 'yearly',
-        days: 365
+// ========== Groq LLM helper for Sign Language AI features (free tier: Llama 3.1 8B, etc.) ==========
+const GROQ_API_KEY = process.env.GROQ_API_KEY;
+const GROQ_MODEL = process.env.GROQ_MODEL || 'llama-3.1-8b-instant'; // free tier; or llama-3.3-70b-versatile, qwen2-72b-instant
+const GROQ_BASE = 'https://api.groq.com/openai/v1';
+
+async function llmChat(systemPrompt, userMessage, maxTokens = 300) {
+    if (!GROQ_API_KEY) {
+        throw new Error('GROQ_API_KEY is not set in environment. Get a free key at https://console.groq.com');
     }
-};
-
-// Allow legacy/alias plan keys to map to the current plan keys
-const PLAN_ALIASES = {
-    individualMonthly: 'monthly',
-    individualYearly: 'yearly',
-    teamMonthly: 'team_monthly',
-    teamYearly: 'team_yearly'
-};
-
-// Helper function to calculate end date
-function calculateEndDate(startDate, planType) {
-    const start = new Date(startDate);
-    const plan = PLANS[planType];
-    if (!plan) return null;
-    
-    start.setDate(start.getDate() + plan.days);
-    return start.toISOString();
+    const res = await fetch(`${GROQ_BASE}/chat/completions`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${GROQ_API_KEY}`,
+        },
+        body: JSON.stringify({
+            model: GROQ_MODEL,
+            messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: userMessage },
+            ],
+            max_tokens: maxTokens,
+            temperature: 0.4,
+        }),
+    });
+    if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`Groq API error ${res.status}: ${errText}`);
+    }
+    const data = await res.json();
+    const content = data.choices?.[0]?.message?.content?.trim();
+    if (!content) throw new Error('Empty response from Groq');
+    return content;
 }
 
-// Helper function to generate receipt ID (max 40 characters for Razorpay)
-function generateReceiptId(userEmail, planType) {
-    if (!userEmail || !planType) {
-        // Fallback if userEmail or planType is missing
-        const fallback = `RCP_${Date.now().toString(36).slice(-12)}`;
-        return fallback.length > 40 ? fallback.substring(0, 40) : fallback;
-    }
-    
-    // Create a short hash from email (8 chars for more safety)
-    const emailHash = crypto.createHash('md5').update(userEmail).digest('hex').substring(0, 8);
-    const planCode = planType.substring(0, 3).toUpperCase(); // First 3 chars of plan type (MON or YEA)
-    
-    // Create a short timestamp (last 10 chars of base36 timestamp for uniqueness)
-    const timestamp = Date.now().toString(36).slice(-10);
-    
-    // Format: RCP_<plan>_<hash><timestamp>
-    // RCP_ (4) + MON (3) + _ (1) + hash (8) + timestamp (10) = 26 chars
-    // This is well under 40 chars limit
-    const receipt = `RCP_${planCode}_${emailHash}${timestamp}`;
-    
-    // Ensure it's exactly 40 characters or less (safety check)
-    const finalReceipt = receipt.length > 40 ? receipt.substring(0, 40) : receipt;
-    
-    // Log for debugging
-    console.log(`Generated receipt: ${finalReceipt} (length: ${finalReceipt.length})`);
-    
-    return finalReceipt;
-}
+// Known signs (words + letters) for prompts
+const KNOWN_WORDS = ['TIME', 'HOME', 'PERSON', 'YOU'];
 
 // API Routes
 
@@ -735,331 +655,215 @@ app.post('/api/auth/verify-otp', (req, res) => {
     );
 });
 
-// Create Razorpay order
-app.post('/api/subscription/create-order', async (req, res) => {
+// ========== Sign Language AI (Groq) routes ==========
+
+app.post('/api/sign-language/explain', async (req, res) => {
     try {
-    let { plan, amount, currency, userEmail, userName, unifiedUserId } = req.body;
-    // Normalize plan using aliases if needed
-    if (!PLANS[plan] && PLAN_ALIASES[plan]) {
-        plan = PLAN_ALIASES[plan];
-    }
-
-        // Validate plan
-        if (!PLANS[plan]) {
-            return res.status(400).json({ error: 'Invalid plan type' });
+        const { type, value } = req.body || {};
+        if (!value || typeof value !== 'string') {
+            return res.status(400).json({ error: 'Missing or invalid body: { type, value }' });
         }
-
-        // Validate amount matches plan
-        if (amount !== PLANS[plan].amount) {
-            return res.status(400).json({ error: 'Amount does not match plan' });
-        }
-
-        // If unifiedUserId is provided but no email, get email from users table
-        let finalEmail = userEmail;
-        if (unifiedUserId && !userEmail) {
-            // Use a promise wrapper for the callback-based function
-            finalEmail = await new Promise((resolve) => {
-                getUserByIdentifier(unifiedUserId, null, (userErr, user) => {
-                    if (!userErr && user) {
-                        resolve(user.user_email || user.linked_google_email || `user_${unifiedUserId}@brightwords.local`);
-                    } else {
-                        resolve(`user_${unifiedUserId}@brightwords.local`);
-                    }
-                });
-            });
-        }
-
-        // Create Razorpay order
-        // Generate receipt ID (must be max 40 characters)
-        const receiptId = generateReceiptId(finalEmail || unifiedUserId, plan);
-        
-        // Validate receipt length before creating order
-        if (receiptId.length > 40) {
-            console.error('❌ Receipt ID too long:', receiptId, 'Length:', receiptId.length);
-            return res.status(500).json({ 
-                error: 'Internal error: Receipt ID generation failed',
-                details: `Receipt length ${receiptId.length} exceeds 40 characters`
-            });
-        }
-        
-        const options = {
-            amount: amount,
-            currency: currency || 'INR',
-            receipt: receiptId,
-            notes: {
-                plan: plan,
-                user_email: userEmail,
-                user_name: userName
-            }
-        };
-
-        console.log('Creating Razorpay order with options:', {
-            amount: options.amount,
-            currency: options.currency,
-            receipt: options.receipt,
-            receiptLength: options.receipt.length
-        });
-
-        const order = await razorpay.orders.create(options);
-        console.log('✅ Razorpay order created successfully:', order.id);
-
-        // Store order in database (status: pending)
-        const startDate = new Date().toISOString();
-        const endDate = calculateEndDate(startDate, plan);
-
-        db.run(
-            `INSERT INTO subscriptions (user_email, unified_user_id, user_name, plan_type, status, amount, currency, razorpay_order_id, start_date, end_date)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [finalEmail || `user_${unifiedUserId}@brightwords.local`, unifiedUserId || null, userName || '', plan, 'pending', amount, currency || 'INR', order.id, startDate, endDate],
-            function(err) {
-                if (err) {
-                    console.error('Error storing order:', err.message);
-                }
-            }
-        );
-
-        res.json({
-            orderId: order.id,
-            amount: order.amount,
-            currency: order.currency,
-            status: order.status
-        });
-
-    } catch (error) {
-        console.error('❌ Error creating Razorpay order:', error);
-        
-        // Extract detailed error information
-        let errorMessage = 'Failed to create order';
-        let errorDetails = error.message;
-        let errorCode = 500;
-        
-        if (error.error) {
-            // Razorpay API error
-            errorMessage = error.error.description || error.error.reason || error.error.message || errorMessage;
-            errorDetails = JSON.stringify(error.error);
-            errorCode = error.statusCode || 500;
-            console.error('Razorpay API Error:', error.error);
-        } else if (error.message) {
-            errorMessage = error.message;
-            console.error('Error message:', error.message);
-        }
-        
-        // Check if it's an authentication error
-        if (errorMessage.includes('authentication') || errorMessage.includes('key') || errorMessage.includes('unauthorized')) {
-            errorMessage = 'Razorpay authentication failed. Please check your API keys in the .env file.';
-        }
-        
-        res.status(errorCode).json({ 
-            error: errorMessage,
-            details: errorDetails,
-            code: errorCode
+        const kind = type === 'letter' ? 'letter' : 'word';
+        const systemPrompt = 'You are a friendly Indian Sign Language (ISL) tutor. In 1 to 2 short sentences, explain how to perform or remember this sign. Use simple, clear language. Do not use markdown.';
+        const userMessage = kind === 'letter'
+            ? `Explain the sign for the letter "${value.toUpperCase()}" (single character).`
+            : `Explain the sign for the word "${value.toUpperCase()}".`;
+        const explanation = await llmChat(systemPrompt, userMessage, 150);
+        return res.json({ explanation });
+    } catch (err) {
+        console.error('Sign-language explain error:', err.message);
+        return res.status(500).json({
+            error: err.message || 'Failed to get explanation',
+            details: GROQ_API_KEY ? undefined : 'GROQ_API_KEY not set in backend .env',
         });
     }
 });
 
-// Verify payment and activate subscription
-app.post('/api/subscription/verify-payment', (req, res) => {
+app.post('/api/sign-language/normalize', async (req, res) => {
     try {
-        const { razorpay_order_id, razorpay_payment_id, razorpay_signature, plan, userEmail, unifiedUserId } = req.body;
-
-        // Verify the payment signature
-        const razorpaySecret = process.env.RAZORPAY_KEY_SECRET;
-        if (!razorpaySecret) {
-            return res.status(500).json({ error: 'Razorpay secret key not configured' });
+        const { text } = req.body || {};
+        if (typeof text !== 'string') {
+            return res.status(400).json({ error: 'Missing or invalid body: { text }' });
         }
-        
-        const text = `${razorpay_order_id}|${razorpay_payment_id}`;
-        const generated_signature = crypto
-            .createHmac('sha256', razorpaySecret)
-            .update(text)
-            .digest('hex');
-
-        if (generated_signature !== razorpay_signature) {
-            return res.status(400).json({ error: 'Invalid payment signature' });
-        }
-
-        // Update subscription in database
-        const startDate = new Date().toISOString();
-        const endDate = calculateEndDate(startDate, plan);
-
-        // Build WHERE clause to support both email and unified_user_id
-        const whereClause = unifiedUserId 
-            ? `razorpay_order_id = ? AND (user_email = ? OR unified_user_id = ?)`
-            : `razorpay_order_id = ? AND user_email = ?`;
-        const whereParams = unifiedUserId 
-            ? [razorpay_order_id, userEmail, unifiedUserId]
-            : [razorpay_order_id, userEmail];
-        
-        db.run(
-            `UPDATE subscriptions 
-             SET status = 'active', 
-                 razorpay_payment_id = ?, 
-                 razorpay_signature = ?,
-                 start_date = ?,
-                 end_date = ?,
-                 updated_at = CURRENT_TIMESTAMP
-             WHERE ${whereClause}`,
-            [razorpay_payment_id, razorpay_signature, startDate, endDate, ...whereParams],
-            function(err) {
-                if (err) {
-                    console.error('Error updating subscription:', err.message);
-                    return res.status(500).json({ error: 'Failed to activate subscription' });
-                }
-
-                // Get the updated subscription
-                const selectWhereClause = unifiedUserId 
-                    ? `razorpay_order_id = ? AND (user_email = ? OR unified_user_id = ?)`
-                    : `razorpay_order_id = ? AND user_email = ?`;
-                db.get(
-                    `SELECT * FROM subscriptions WHERE ${selectWhereClause}`,
-                    whereParams,
-                    (err, row) => {
-                        if (err) {
-                            console.error('Error fetching subscription:', err.message);
-                            return res.status(500).json({ error: 'Failed to fetch subscription' });
-                        }
-
-                        res.json({
-                            success: true,
-                            message: 'Payment verified and subscription activated',
-                            subscription: {
-                                plan: row.plan_type,
-                                status: row.status,
-                                startDate: row.start_date,
-                                endDate: row.end_date,
-                                paymentId: row.razorpay_payment_id
-                            }
-                        });
-                    }
-                );
-            }
-        );
-
-    } catch (error) {
-        console.error('Error verifying payment:', error);
-        res.status(500).json({ error: 'Failed to verify payment', details: error.message });
+        const systemPrompt = `You are a text normalizer for a sign language app. We have full signs only for these words: ${KNOWN_WORDS.join(', ')}. All other words are fingerspelled letter by letter.
+Tasks: (1) Normalize the user text: fix typos, expand contractions (e.g. "gonna" -> "going to"), correct grammar. (2) List which words from the user text are in our sign list (${KNOWN_WORDS.join(', ')}).
+Respond in exactly this JSON format, no other text: {"normalizedText":"...", "suggestedWords":["WORD1","WORD2"], "message":"Short hint for the user about which words have full signs."}`;
+        const raw = await llmChat(systemPrompt, `User text: ${text}`, 250);
+        const jsonMatch = raw.match(/\{[\s\S]*\}/);
+        const parsed = jsonMatch ? JSON.parse(jsonMatch) : { normalizedText: text, suggestedWords: [], message: '' };
+        const normalizedText = parsed.normalizedText || text;
+        const suggestedWords = Array.isArray(parsed.suggestedWords) ? parsed.suggestedWords : [];
+        const message = parsed.message || (suggestedWords.length ? `We have full signs for: ${suggestedWords.join(', ')}.` : '');
+        return res.json({ normalizedText, suggestedWords, message });
+    } catch (err) {
+        console.error('Sign-language normalize error:', err.message);
+        return res.status(500).json({
+            error: err.message || 'Failed to normalize',
+            normalizedText: req.body?.text || '',
+            suggestedWords: [],
+            message: '',
+        });
     }
 });
 
-// Check subscription status (supports unified_user_id)
-app.get('/api/subscription/status', (req, res) => {
+app.post('/api/sign-language/gloss', async (req, res) => {
     try {
-        const { userEmail, unifiedUserId } = req.query;
-
-        if (!userEmail && !unifiedUserId) {
-            return res.status(400).json({ error: 'User email or unifiedUserId is required' });
+        const { text } = req.body || {};
+        if (typeof text !== 'string') {
+            return res.status(400).json({ error: 'Missing or invalid body: { text }' });
         }
-
-        // Build WHERE clause to support both email and unified_user_id
-        const whereClause = unifiedUserId 
-            ? `(user_email = ? OR unified_user_id = ?) AND status = 'active'`
-            : `user_email = ? AND status = 'active'`;
-        const whereParams = unifiedUserId 
-            ? [userEmail || '', unifiedUserId]
-            : [userEmail];
-
-        // Get the most recent active subscription
-        db.get(
-            `SELECT * FROM subscriptions 
-             WHERE ${whereClause}
-             ORDER BY created_at DESC 
-             LIMIT 1`,
-            whereParams,
-            (err, row) => {
-                if (err) {
-                    console.error('Error fetching subscription:', err.message);
-                    return res.status(500).json({ error: 'Failed to check subscription' });
-                }
-
-                if (!row) {
-                    return res.json({
-                        hasSubscription: false,
-                        subscription: null
-                    });
-                }
-
-                // Check if subscription is still valid
-                const endDate = new Date(row.end_date);
-                const now = new Date();
-
-                if (endDate <= now) {
-                    // Subscription expired - update status
-                    db.run(
-                        `UPDATE subscriptions SET status = 'expired', updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
-                        [row.id]
-                    );
-
-                    return res.json({
-                        hasSubscription: false,
-                        subscription: null
-                    });
-                }
-
-                res.json({
-                    hasSubscription: true,
-                    subscription: {
-                        plan: row.plan_type,
-                        status: row.status,
-                        startDate: row.start_date,
-                        endDate: row.end_date
-                    }
-                });
-            }
-        );
-
-    } catch (error) {
-        console.error('Error checking subscription:', error);
-        res.status(500).json({ error: 'Failed to check subscription status' });
+        const systemPrompt = `You are an Indian Sign Language (ISL) expert. Given an English sentence, output a sequence of sign glosses (one per sign). Use CAPITALIZED words for known signs. For fingerspelling, use single capital letters separated by spaces.
+Our app has full signs only for these words: ${KNOWN_WORDS.join(', ')}. For any other word, either use a standard ISL gloss if you know one, or output the letters for fingerspelling (e.g. "J O H N").
+Respond with a JSON array only, no other text. Example: ["HELLO","MY","NAME","J","O","H","N"]`;
+        const raw = await llmChat(systemPrompt, `Sentence: ${text}`, 200);
+        const arrMatch = raw.match(/\[[\s\S]*\]/);
+        const glosses = arrMatch ? JSON.parse(arrMatch) : [];
+        return res.json({ glosses: Array.isArray(glosses) ? glosses : [] });
+    } catch (err) {
+        console.error('Sign-language gloss error:', err.message);
+        return res.status(500).json({ error: err.message || 'Failed to get glosses', glosses: [] });
     }
 });
 
-// Get user's subscription history (supports unified_user_id)
-app.get('/api/subscription/history', (req, res) => {
+app.post('/api/sign-language/chat', async (req, res) => {
     try {
-        const { userEmail, unifiedUserId } = req.query;
-
-        if (!userEmail && !unifiedUserId) {
-            return res.status(400).json({ error: 'User email or unifiedUserId is required' });
+        const { message } = req.body || {};
+        if (typeof message !== 'string' || !message.trim()) {
+            return res.status(400).json({ error: 'Missing or invalid body: { message }' });
         }
+        const systemPrompt = `You are a friendly Indian Sign Language (ISL) tutor for the BrightWords app. We have signs for: letters A-Z, and these words: ${KNOWN_WORDS.join(', ')}. For other concepts, suggest fingerspelling or a short explanation. Keep answers brief (2-4 sentences). Do not use markdown. If the user asks about a sign we have, suggest they try "Learn Sign" for that word or letter.`;
+        const reply = await llmChat(systemPrompt, message.trim(), 200);
+        return res.json({ reply });
+    } catch (err) {
+        console.error('Sign-language chat error:', err.message);
+        return res.status(500).json({ error: err.message || 'Failed to get reply', reply: '' });
+    }
+});
 
-        // Build WHERE clause to support both email and unified_user_id
-        const whereClause = unifiedUserId 
-            ? `(user_email = ? OR unified_user_id = ?)`
-            : `user_email = ?`;
-        const whereParams = unifiedUserId 
-            ? [userEmail || '', unifiedUserId]
-            : [userEmail];
+// ========== Fun Activities AI (Groq) routes ==========
 
-        db.all(
-            `SELECT * FROM subscriptions 
-             WHERE ${whereClause}
-             ORDER BY created_at DESC`,
-            whereParams,
-            (err, rows) => {
-                if (err) {
-                    console.error('Error fetching subscription history:', err.message);
-                    return res.status(500).json({ error: 'Failed to fetch subscription history' });
-                }
+app.post('/api/fun-activities/phonics-explain', async (req, res) => {
+    try {
+        const { letter } = req.body || {};
+        const L = typeof letter === 'string' ? letter.trim().toUpperCase() : '';
+        if (!L || L.length !== 1 || !/^[A-Z]$/.test(L)) {
+            return res.status(400).json({ error: 'Missing or invalid body: { letter: "A"-"Z" }' });
+        }
+        const systemPrompt = 'You are a friendly phonics tutor for children. In 1 to 2 short sentences, explain how to make or remember the sound for this letter. Use simple language. Do not use markdown.';
+        const explanation = await llmChat(systemPrompt, `Explain the sound for the letter ${L}.`, 150);
+        return res.json({ explanation });
+    } catch (err) {
+        console.error('Fun-activities phonics-explain error:', err.message);
+        return res.status(500).json({ error: err.message || 'Failed to get explanation', explanation: '' });
+    }
+});
 
-                res.json({
-                    subscriptions: rows.map(row => ({
-                        id: row.id,
-                        plan: row.plan_type,
-                        status: row.status,
-                        amount: row.amount,
-                        currency: row.currency,
-                        startDate: row.start_date,
-                        endDate: row.end_date,
-                        paymentId: row.razorpay_payment_id,
-                        createdAt: row.created_at
-                    }))
-                });
-            }
-        );
+app.post('/api/fun-activities/spelling-words', async (req, res) => {
+    try {
+        const level = (req.body?.level || 'easy').toLowerCase();
+        const topic = (req.body?.topic || 'everyday').toLowerCase();
+        const systemPrompt = `You are a spelling practice helper. Return a JSON array of exactly 8 simple English words suitable for spelling practice. Level: ${level}. Topic: ${topic}. Use only lowercase, short words (e.g. cat, run, sun). Reply with ONLY a JSON array, no other text. Example: ["cat","dog","sun","hat","run","bug","pet","red"]`;
+        const raw = await llmChat(systemPrompt, `Generate 8 words for level=${level} topic=${topic}.`, 150);
+        const arrMatch = raw.match(/\[[\s\S]*?\]/);
+        const words = arrMatch ? JSON.parse(arrMatch) : ['cat', 'dog', 'sun', 'hat', 'run', 'bug', 'pet', 'red'];
+        const list = Array.isArray(words) ? words.filter(w => typeof w === 'string').map(w => w.toLowerCase().trim()).slice(0, 12) : ['cat', 'dog', 'sun', 'hat', 'run', 'bug', 'pet', 'red'];
+        return res.json({ words: list.length ? list : ['cat', 'dog', 'sun', 'hat', 'run', 'bug', 'pet', 'red'] });
+    } catch (err) {
+        console.error('Fun-activities spelling-words error:', err.message);
+        return res.status(500).json({ words: ['cat', 'dog', 'sun', 'hat', 'run', 'bug', 'pet', 'red'] });
+    }
+});
 
-    } catch (error) {
-        console.error('Error fetching subscription history:', error);
-        res.status(500).json({ error: 'Failed to fetch subscription history' });
+app.post('/api/fun-activities/spelling-hint', async (req, res) => {
+    try {
+        const word = (req.body?.word || '').toLowerCase().trim();
+        if (!word) return res.status(400).json({ error: 'Missing body: { word }', hint: '' });
+        const systemPrompt = 'You are a spelling game hint helper. Give a ONE short sentence clue that describes the word so the child can guess it, but do NOT say the word itself. Use simple language. Do not use markdown.';
+        const hint = await llmChat(systemPrompt, `Word to hint (do not say this word): ${word}. Give one sentence clue.`, 80);
+        return res.json({ hint: hint.trim() });
+    } catch (err) {
+        console.error('Fun-activities spelling-hint error:', err.message);
+        return res.status(500).json({ error: err.message || 'Failed to get hint', hint: '' });
+    }
+});
+
+app.post('/api/fun-activities/story-generate', async (req, res) => {
+    try {
+        const { setting, character, goal } = req.body || {};
+        if (!setting || !character || !goal) {
+            return res.status(400).json({ error: 'Missing body: { setting, character, goal }', story: '' });
+        }
+        const systemPrompt = 'You are a children\'s story writer. Write a short story (3 to 5 sentences) that includes the given setting, character, and goal. Use simple words and a clear beginning, middle, and end. Output only the story, no title or extra text. Do not use markdown.';
+        const userMessage = `Setting: ${setting}. Character: ${character}. Goal: ${goal}.`;
+        const story = await llmChat(systemPrompt, userMessage, 300);
+        return res.json({ story: story.trim() });
+    } catch (err) {
+        console.error('Fun-activities story-generate error:', err.message);
+        return res.status(500).json({ error: err.message || 'Failed to generate story', story: '' });
+    }
+});
+
+app.post('/api/fun-activities/story-passage', async (req, res) => {
+    try {
+        const topic = (req.body?.topic || 'nature').toLowerCase();
+        const level = (req.body?.level || 'easy').toLowerCase();
+        const systemPrompt = `You are a children's reading passage writer. Write ONE short paragraph (3 to 5 simple sentences) for kids to read. Topic: ${topic}. Level: ${level}. Reply with a JSON object only: {"title":"Short title","text":"The paragraph text."}. No other text.`;
+        const raw = await llmChat(systemPrompt, `Generate one short passage. Topic: ${topic}, level: ${level}.`, 250);
+        const jsonMatch = raw.match(/\{[\s\S]*\}/);
+        const parsed = jsonMatch ? JSON.parse(jsonMatch) : {};
+        const title = parsed.title || 'New Story';
+        const text = parsed.text || '';
+        return res.json({ title, text });
+    } catch (err) {
+        console.error('Fun-activities story-passage error:', err.message);
+        return res.status(500).json({ title: 'New Story', text: '', error: err.message });
+    }
+});
+
+app.post('/api/fun-activities/story-explain', async (req, res) => {
+    try {
+        const { text, type } = req.body || {};
+        const t = typeof text === 'string' ? text.trim() : '';
+        if (!t) return res.status(400).json({ error: 'Missing body: { text }', explanation: '', question: '', suggestedAnswer: '' });
+        const isQuestion = (type || 'explain').toLowerCase() === 'question';
+        const systemPrompt = isQuestion
+            ? 'You are a reading comprehension helper for children. Based on the given text, ask ONE simple question that a child can answer (e.g. "What did the bird do?"). Then give a short suggested answer. Reply in JSON only: {"question":"...","suggestedAnswer":"..."}. No other text.'
+            : 'You are a reading helper for children. In 1 to 2 short sentences, explain the given text in simple language. Reply in JSON only: {"explanation":"..."}. No other text.';
+        const raw = await llmChat(systemPrompt, `Text: ${t.slice(0, 500)}.`, 150);
+        const jsonMatch = raw.match(/\{[\s\S]*\}/);
+        const parsed = jsonMatch ? JSON.parse(jsonMatch) : {};
+        if (isQuestion) return res.json({ question: parsed.question || '', suggestedAnswer: parsed.suggestedAnswer || '' });
+        return res.json({ explanation: parsed.explanation || '' });
+    } catch (err) {
+        console.error('Fun-activities story-explain error:', err.message);
+        return res.status(500).json({ error: err.message || 'Failed', explanation: '', question: '', suggestedAnswer: '' });
+    }
+});
+
+app.post('/api/fun-activities/memory-hint', async (req, res) => {
+    try {
+        const { emoji } = req.body || {};
+        if (emoji === undefined || emoji === null) return res.status(400).json({ error: 'Missing body: { emoji }', hint: '' });
+        const systemPrompt = 'You are a memory game hint helper for children. In ONE short sentence, describe this emoji so a child can guess it (e.g. "An animal that barks"). Do NOT say the word or the emoji name. Use simple language. No markdown.';
+        const hint = await llmChat(systemPrompt, `Emoji to describe (do not name it): ${emoji}. One sentence hint.`, 60);
+        return res.json({ hint: hint.trim() });
+    } catch (err) {
+        console.error('Fun-activities memory-hint error:', err.message);
+        return res.status(500).json({ error: err.message || 'Failed to get hint', hint: '' });
+    }
+});
+
+app.post('/api/fun-activities/writing-feedback', async (req, res) => {
+    try {
+        const { itemId, correct } = req.body || {};
+        const id = typeof itemId === 'string' ? itemId.trim() : 'shape';
+        const isCorrect = correct === true;
+        const systemPrompt = 'You are a kind writing practice coach for children. The learner just practiced drawing: ' + id + '. They got it ' + (isCorrect ? 'correct' : 'incorrect') + '. Reply with ONE short, kind sentence: either one specific tip to improve (if incorrect) or praise (if correct). No markdown.';
+        const feedback = await llmChat(systemPrompt, 'Give one sentence only.', 80);
+        return res.json({ feedback: feedback.trim() });
+    } catch (err) {
+        console.error('Fun-activities writing-feedback error:', err.message);
+        return res.status(500).json({ error: err.message || 'Failed', feedback: '' });
     }
 });
 
@@ -1069,7 +873,7 @@ app.use(express.static('public'));
 
 // Start server
 app.listen(PORT, () => {
-    console.log(`BrightWords Subscription API server running on port ${PORT}`);
+    console.log(`BrightWords API server running on port ${PORT}`);
     console.log(`Health check: http://localhost:${PORT}/api/health`);
     console.log(`API routes registered before static files`);
 });

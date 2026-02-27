@@ -36,7 +36,7 @@ function copyStaticFoldersPlugin() {
       
       // Copy each folder
       foldersToCopy.forEach(folder => {
-        const srcDir = path.resolve(__dirname, folder)
+        const srcDir = path.resolve(__dirname, 'public', folder)
         const destDir = path.resolve(__dirname, `dist/${folder}`)
         
         if (fs.existsSync(srcDir)) {

@@ -18,33 +18,16 @@ if (Test-Path $envPath) {
     }
 }
 
-Write-Host "Optional: Groq API key for Sign Language AI features - free tier at https://console.groq.com (press Enter to skip):" -ForegroundColor Gray
+Write-Host "Optional: Groq API key for Sign Language & Fun Activities AI - free tier at https://console.groq.com (press Enter to skip):" -ForegroundColor Gray
 $groqApiKey = Read-Host "Groq API Key (or press Enter)"
-
-Write-Host "Optional: Razorpay credentials (press Enter to skip):" -ForegroundColor Gray
-$razorpayKeyId = Read-Host "Razorpay Key ID (or press Enter)"
-$razorpayKeySecret = Read-Host "Razorpay Key Secret (or press Enter)" -AsSecureString
-
-if ($razorpayKeySecret.Length -gt 0) {
-    $BSTR2 = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($razorpayKeySecret)
-    $razorpayKeySecretPlain = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR2)
-} else {
-    $razorpayKeySecretPlain = ""
-}
 
 # Create .env content
 $envContent = @"
 # BrightWords Backend Environment Variables
 # Generated on $(Get-Date -Format "yyyy-MM-dd HH:mm:ss")
 
-# Razorpay Payment Gateway (Optional)
-RAZORPAY_KEY_ID=$razorpayKeyId
-RAZORPAY_KEY_SECRET=$razorpayKeySecretPlain
-
-# Sign Language AI - Groq LLM (Optional, free tier)
+# Sign Language & Fun Activities AI - Groq LLM (Optional, free tier)
 GROQ_API_KEY=$groqApiKey
-# Optional: model (default llama-3.1-8b-instant). Also: llama-3.3-70b-versatile, qwen2-72b-instant
-# GROQ_MODEL=llama-3.1-8b-instant
 
 # Server Port (Optional - defaults to 3000)
 PORT=3000
@@ -66,4 +49,3 @@ try {
     Write-Host "❌ Error creating .env file: $_" -ForegroundColor Red
     exit 1
 }
-

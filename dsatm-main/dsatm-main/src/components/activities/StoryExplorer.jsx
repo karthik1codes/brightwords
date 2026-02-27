@@ -147,14 +147,14 @@ export default function StoryExplorer({ onFocus }) {
           <span className="story-picker-title" aria-live="polite">{currentStory?.title}</span>
           <button type="button" className="btn btn-ghost story-nav-btn" onClick={() => goToStory(1)} aria-label="Next story">Next →</button>
           <button type="button" className="btn btn-secondary" onClick={handleGetNewStory} disabled={newStoryLoading} style={{ marginLeft: 8 }}>
-            {newStoryLoading ? 'Loading...' : 'Get new story (AI)'}
+            {newStoryLoading ? 'Loading...' : 'Get new story'}
           </button>
         </div>
       </div>
       {passage && (
         <div className="story-explorer-controls" style={{ marginTop: 8, gap: 8 }}>
-          <button type="button" className="btn btn-secondary" onClick={() => handleExplain('explain')}>Explain this story (AI)</button>
-          <button type="button" className="btn btn-secondary" onClick={() => handleExplain('question')}>Ask a question (AI)</button>
+          <button type="button" className="btn btn-secondary" onClick={() => handleExplain('explain')}>Explain this story</button>
+          <button type="button" className="btn btn-secondary" onClick={() => handleExplain('question')}>Ask a question</button>
         </div>
       )}
       <div

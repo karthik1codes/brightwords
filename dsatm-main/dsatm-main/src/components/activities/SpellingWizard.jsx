@@ -107,8 +107,8 @@ export default function SpellingWizard({ onFocus }) {
         <button type="button" className="btn btn-secondary" onClick={handleHint} disabled={hintUsed} onFocus={() => onFocus && onFocus('Get hint')}>
           Hint (first letter)
         </button>
-        <button type="button" className="btn btn-secondary" onClick={handleAiHint} onFocus={() => onFocus && onFocus('AI hint')}>
-          AI hint
+        <button type="button" className="btn btn-secondary" onClick={handleAiHint} onFocus={() => onFocus && onFocus('Hint')}>
+          Hint
         </button>
         <button type="button" className="btn btn-ghost" onClick={handleNewSet} disabled={wordsLoading}>New set</button>
       </div>
@@ -132,7 +132,7 @@ export default function SpellingWizard({ onFocus }) {
       {aiHint.show && (
         <div className="activity-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="aiHintTitle" onClick={() => setAiHint(prev => ({ ...prev, show: false }))}>
           <div className="activity-modal" onClick={e => e.stopPropagation()}>
-            <h3 id="aiHintTitle">AI hint for this word</h3>
+            <h3 id="aiHintTitle">Hint for this word</h3>
             {aiHint.loading && <p>Loading hint...</p>}
             {aiHint.error && <p className="activity-feedback error">{aiHint.error}</p>}
             {!aiHint.loading && aiHint.text && <p>{aiHint.text}</p>}

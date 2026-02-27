@@ -4,6 +4,7 @@ import { AccessibilityProvider } from './context/AccessibilityContext'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import PublicRoute from './components/PublicRoute'
+import ChatWidget from './components/ChatWidget'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
 import Home from './pages/Home'
@@ -148,6 +149,8 @@ function App() {
     <AuthProvider>
       <AccessibilityProvider>
         <AppRoutes />
+        {/* BrightWords AI assistant (Jotform) – floating chat on all pages: login, home, sign language, feedback, etc. */}
+        <ChatWidget />
       </AccessibilityProvider>
     </AuthProvider>
   )

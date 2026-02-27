@@ -10,9 +10,9 @@ function SuperPower() {
   }, [])
 
   useEffect(() => {
-    // Load the SuperPower login page in an iframe - it will redirect to landing after auth
+    // Load the SuperPower landing page (pick hear/speak/see) so features are accessible without AWS Cognito
     if (iframeRef.current) {
-      iframeRef.current.src = '/aws-augmentability-main/login.html'
+      iframeRef.current.src = '/aws-augmentability-main/index-landing.html'
     }
   }, [])
 

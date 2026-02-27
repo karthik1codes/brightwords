@@ -147,6 +147,76 @@ function Services() {
             variants={cardVariants}
           >
             <div className="card h-100 d-flex flex-column service-card shadow-sm">
+              <div className="card-img-wrapper" style={{ overflow: "hidden", height: "200px", backgroundColor: "#e8f5e9" }}>
+                <img 
+                  className="card-img-top" 
+                  src={imgConvert} 
+                  alt="Animate with AI" 
+                  style={{ objectFit: "cover", height: "100%", width: "100%", transition: "transform 0.3s ease" }}
+                />
+              </div>
+              <div className="card-body d-flex flex-column">
+                <h5 className="card-title mb-3" style={{ fontSize: "1.5rem", fontWeight: "600", color: "#2e7d32" }}>
+                  <i className="fa fa-magic me-2" />Animate with AI
+                </h5>
+                <p className="card-text flex-grow-1" style={{ fontSize: "1rem", lineHeight: "1.7", color: "#666" }}>
+                  Get AI-generated sign sequences and watch the 3D avatar animate them in real time. 
+                  Enter or speak text, then click Animate with AI to see the signs.
+                </p>
+                <Link
+                  to="/sign-kit/animate-with-ai"
+                  className="btn btn-primary w-100 mt-auto service-btn"
+                  style={{ fontSize: "1rem", fontWeight: "600", padding: "12px", borderRadius: "8px", transition: "all 0.3s ease" }}
+                >
+                  Try It <i className="fa fa-arrow-right ms-2" />
+                </Link>
+              </div>
+            </div>
+          </motion.div>
+          <motion.div 
+            className="col-lg-4 col-md-6 mb-4"
+            custom={3}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={cardVariants}
+          >
+            <div className="card h-100 d-flex flex-column service-card shadow-sm">
+              <div className="card-img-wrapper" style={{ overflow: "hidden", height: "200px", backgroundColor: "#e3f2fd" }}>
+                <img 
+                  className="card-img-top" 
+                  src={imgVideos} 
+                  alt="AI Signing Video" 
+                  style={{ objectFit: "cover", height: "100%", width: "100%", transition: "transform 0.3s ease" }}
+                />
+              </div>
+              <div className="card-body d-flex flex-column">
+                <h5 className="card-title mb-3" style={{ fontSize: "1.5rem", fontWeight: "600", color: "#1565c0" }}>
+                  <i className="fa fa-video-camera me-2" />AI Signing Video
+                </h5>
+                <p className="card-text flex-grow-1" style={{ fontSize: "1rem", lineHeight: "1.7", color: "#666" }}>
+                  Record the 3D avatar signing your text as a video. Enter or speak text, 
+                  click AI signing video, and download or share the generated signing video.
+                </p>
+                <Link
+                  to="/sign-kit/ai-signing-video"
+                  className="btn btn-primary w-100 mt-auto service-btn"
+                  style={{ fontSize: "1rem", fontWeight: "600", padding: "12px", borderRadius: "8px", transition: "all 0.3s ease" }}
+                >
+                  Create Video <i className="fa fa-arrow-right ms-2" />
+                </Link>
+              </div>
+            </div>
+          </motion.div>
+          <motion.div 
+            className="col-lg-4 col-md-6 mb-4"
+            custom={4}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={cardVariants}
+          >
+            <div className="card h-100 d-flex flex-column service-card shadow-sm">
               <div className="card-img-wrapper" style={{ overflow: "hidden", height: "200px", backgroundColor: "#fff3e0" }}>
                 <img 
                   className="card-img-top" 

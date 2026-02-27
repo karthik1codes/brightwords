@@ -250,6 +250,70 @@
   line-height: 1.4;
 }
 
+/* Mode Select Page - Two Cute Buttons */
+.mode-select-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.mode-btn {
+  width: 100%;
+  min-height: 52px;
+  padding: 14px 24px;
+  border-radius: 9999px;
+  font-family: 'Fredoka', cursive;
+  font-size: 18px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: transform 0.15s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  box-sizing: border-box;
+}
+
+.mode-btn:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.05);
+}
+
+.mode-btn:active {
+  transform: translateY(0);
+  filter: brightness(0.98);
+}
+
+.mode-btn-icon {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.mode-btn-parent {
+  background: linear-gradient(135deg, #8B5CF6, #EC4899);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(139, 92, 246, 0.35);
+}
+
+.mode-btn-parent:hover {
+  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4);
+}
+
+.mode-btn-use {
+  background: rgba(255, 255, 255, 0.95);
+  color: #6d28d9;
+  border: 2px solid rgba(139, 92, 246, 0.5);
+  box-shadow: 0 2px 10px rgba(139, 92, 246, 0.15);
+}
+
+.mode-btn-use:hover {
+  border-color: #8B5CF6;
+  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.25);
+}
+
 /* Loading Spinner */
 .login-loading-spinner {
   width: 48px;

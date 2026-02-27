@@ -137,7 +137,7 @@ const ProgressSummary = () => {
             <div className="section-header" style={{ marginBottom: 32 }}>
               <h2 className="section-title">Parent Mode</h2>
               <p className="section-subtitle">
-                Scores based on activities your child used, played, and performed in BrightWords.
+                See how far your child has come—every step, every try, every win. Celebrating their journey with you.
               </p>
             </div>
 
@@ -209,6 +209,7 @@ const ProgressSummary = () => {
               style={{
                 display: 'flex',
                 justifyContent: 'center',
+                alignItems: 'center',
                 gap: 16,
                 marginBottom: 24,
                 flexWrap: 'wrap',
@@ -219,6 +220,13 @@ const ProgressSummary = () => {
                 onClick={() => navigate('/home', { replace: true })}
               >
                 Continue to Home
+              </button>
+              <button
+                className="btn-secondary"
+                onClick={() => navigate('/feedback', { state: { from: 'parent-mode' } })}
+                aria-label="Share your feedback"
+              >
+                Share your thoughts — Feedback
               </button>
             </div>
           </section>

@@ -1,10 +1,12 @@
 import React, { useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { speak } from '../utils/voice'
 import { playClick, playSuccess } from '../utils/sound'
 
 function Feedback() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const fromParentMode = location.state?.from === 'parent-mode'
 
   // Page load announcement
   useEffect(() => {
@@ -136,11 +138,15 @@ function Feedback() {
         <button
           onClick={() => {
             playClick()
-            speak('Clicking Back to Home. Navigating to home page.')
-            // Navigate directly to home - no authentication check needed
-            navigate('/home')
+            if (fromParentMode) {
+              speak('Clicking Go back to parent mode. Navigating to parent mode.')
+              navigate('/progress-summary')
+            } else {
+              speak('Clicking Back to Home. Navigating to home page.')
+              navigate('/home')
+            }
           }}
-          onFocus={() => speak('Back to Home button')}
+          onFocus={() => speak(fromParentMode ? 'Go back to parent mode button' : 'Back to Home button')}
           style={{
             padding: '10px 20px',
             background: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
@@ -163,7 +169,7 @@ function Feedback() {
             e.currentTarget.style.boxShadow = 'none'
           }}
         >
-          ← Back to Home
+          {fromParentMode ? '← Go back to parent mode' : '← Back to Home'}
         </button>
       </nav>
 

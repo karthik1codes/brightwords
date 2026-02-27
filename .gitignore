@@ -1,0 +1,9 @@
+# Dependencies
+node_modules/
+
+# Vite cache (generated at build/dev time)
+**/.vite/
+
+# Archives
+*.zip
+projectname.zip

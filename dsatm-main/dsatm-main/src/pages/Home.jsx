@@ -35,10 +35,6 @@ const Home = () => {
   }, [])
 
   const supportProfiles = {
-    general: {
-      message: 'General support mode active. Select another profile if needed.',
-      announcement: 'General learner mode enabled.',
-    },
     blind: {
       message: 'Blind / low vision mode enabled with richer speech feedback.',
       announcement: 'Blind support enabled. Speech guidance and audio cues boosted.',
@@ -103,8 +99,7 @@ const Home = () => {
     playClick()
     setSelectedCategory(category)
     const profile = supportProfiles[category]
-    const categoryName = category === 'general' ? 'General Learner' : 
-                         category === 'blind' ? 'Blind / Low Vision' :
+    const categoryName = category === 'blind' ? 'Blind / Low Vision' :
                          category === 'deaf' ? 'Deaf / Hard of Hearing' : 'Games'
     speak(`Selecting ${categoryName} support profile. ${profile?.announcement || ''}`)
     if (profile) {
@@ -123,9 +118,9 @@ const Home = () => {
 
   const handleStartPhonics = () => {
     playClick()
-    speak('Clicking Phonics Fun. Opening Phonics Fun activity.')
-    announce('Opening Phonics Fun activity')
-    navigate('/funactivities#phonics')
+    speak('Clicking Phonics Fun. Opening Phonics Fun game.')
+    announce('Opening Phonics Fun game')
+    navigate('/games/phonics')
   }
 
   const handleWatchDemo = () => {
@@ -276,8 +271,7 @@ const Home = () => {
 
             <div className="support-grid" role="group" aria-label="Support profile options">
               {Object.entries(supportProfiles).map(([key, profile]) => {
-                const categoryName = key === 'general' ? 'General Learner' : 
-                                   key === 'blind' ? 'Blind / Low Vision' :
+                const categoryName = key === 'blind' ? 'Blind / Low Vision' :
                                    key === 'deaf' ? 'Deaf / Hard of Hearing' : 'Games'
                 return (
                   <button
@@ -289,14 +283,12 @@ const Home = () => {
                     aria-label={`Select ${key} support profile`}
                   >
                     <div className="support-icon">
-                      {key === 'general' && '🌈'}
                       {key === 'blind' && '🦮'}
                       {key === 'deaf' && '🪄'}
                       {key === 'neurodiverse' && '🧩'}
                     </div>
                     <div className="support-info">
                       <h3>
-                        {key === 'general' && 'General Learner'}
                         {key === 'blind' && 'Blind / Low Vision'}
                         {key === 'deaf' && 'Deaf / Hard of Hearing'}
                         {key === 'neurodiverse' && 'Games'}
@@ -347,8 +339,8 @@ const Home = () => {
                       className="btn-secondary"
                     onClick={() => {
                       playClick()
-                      speak('Clicking Spelling Wizard. Navigating to Spelling Wizard activity.')
-                      navigate('/funactivities#spelling')
+                      speak('Clicking Spelling Wizard. Opening Spelling Wizard game.')
+                      navigate('/games/spelling')
                     }}
                       onFocus={() => speak('Spelling Wizard button')}
                       aria-label="Start Spelling Wizard"
@@ -384,8 +376,8 @@ const Home = () => {
                       className="btn-primary"
                     onClick={() => {
                       playClick()
-                      speak('Clicking Memory Master. Navigating to Memory Master activity.')
-                      navigate('/funactivities#memory')
+                      speak('Clicking Memory Master. Opening Memory Master game.')
+                      navigate('/games/memory')
                     }}
                       onFocus={() => speak('Memory Master button')}
                       aria-label="Start Memory Master"
@@ -396,8 +388,8 @@ const Home = () => {
                       className="btn-secondary"
                     onClick={() => {
                       playClick()
-                      speak('Clicking Story Creator. Navigating to Story Creator activity.')
-                      navigate('/funactivities#stories')
+                      speak('Clicking Story Creator. Opening Story Creator game.')
+                      navigate('/games/stories')
                     }}
                       onFocus={() => speak('Story Creator button')}
                       aria-label="Start Story Creator"
@@ -433,8 +425,8 @@ const Home = () => {
                       className="btn-primary"
                     onClick={() => {
                       playClick()
-                      speak('Clicking Writing Artist. Navigating to Writing Artist activity.')
-                      navigate('/funactivities#writing')
+                      speak('Clicking Writing Artist. Opening Writing Artist game.')
+                      navigate('/games/writing')
                     }}
                       onFocus={() => speak('Writing Artist button')}
                       aria-label="Start Writing Artist"
@@ -445,8 +437,8 @@ const Home = () => {
                       className="btn-secondary"
                     onClick={() => {
                       playClick()
-                      speak('Clicking Story Explorer. Navigating to Story Explorer activity.')
-                      navigate('/funactivities#reading')
+                      speak('Clicking Story Explorer. Opening Story Explorer game.')
+                      navigate('/games/reading')
                     }}
                       onFocus={() => speak('Story Explorer button')}
                       aria-label="Start Story Explorer"
@@ -469,55 +461,6 @@ const Home = () => {
                 </div>
               )}
 
-              {selectedCategory === 'general' && (
-                <div className="support-widget" style={{ padding: '28px', textAlign: 'left' }}>
-                  <h3 style={{ color: '#1f2937', marginBottom: '12px' }}>
-                    🌈 Activities for General Learner
-                  </h3>
-                  <p style={{ color: '#4b5563', marginBottom: '16px', lineHeight: 1.6 }}>
-                    Try phonics, spelling, and more. Pick an activity to start practicing.
-                  </p>
-                  <div style={{ display: 'grid', gap: '12px' }}>
-                    <button
-                      className="btn-primary"
-                      onClick={() => {
-                        playClick()
-                        speak('Clicking Phonics Fun. Opening Phonics Fun activity.')
-                        announce('Opening Phonics Fun activity')
-                        navigate('/funactivities#phonics')
-                      }}
-                      onFocus={() => speak('Phonics Fun button')}
-                      aria-label="Start Phonics Fun activity"
-                    >
-                      🔤 Phonics Fun
-                    </button>
-                    <button
-                      className="btn-secondary"
-                      onClick={() => {
-                        playClick()
-                        speak('Clicking Spelling Wizard. Navigating to Spelling Wizard activity.')
-                        navigate('/funactivities#spelling')
-                      }}
-                      onFocus={() => speak('Spelling Wizard button')}
-                      aria-label="Start Spelling Wizard"
-                    >
-                      ✏️ Spelling Wizard
-                    </button>
-                    <button
-                      className="btn-secondary"
-                      onClick={() => {
-                        playClick()
-                        speak('Clicking Explore all fun activities. Navigating to activities page.')
-                        navigate('/funactivities')
-                      }}
-                      onFocus={() => speak('Explore all fun activities button')}
-                      aria-label="Explore all fun activities"
-                    >
-                      Explore all fun activities
-                    </button>
-                  </div>
-                </div>
-              )}
             </div>
           </section>
 

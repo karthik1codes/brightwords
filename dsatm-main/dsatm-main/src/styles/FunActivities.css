@@ -208,11 +208,58 @@
   color: var(--fp-text);
 }
 
+.activity-detail-image-wrap {
+  width: 100%;
+  max-width: 520px;
+  margin: 16px 0;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.15);
+  border: 2px solid rgba(139, 92, 246, 0.12);
+}
+
+/* Doodle illustration: description is above, doodle below; subtle animation */
+.activity-doodle-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.06), rgba(236, 72, 153, 0.06));
+  border-radius: 16px;
+  animation: doodle-float 4s ease-in-out infinite;
+}
+
+.activity-doodle-svg {
+  width: 100%;
+  max-width: 280px;
+  height: auto;
+}
+
+@keyframes doodle-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+.activity-detail-image {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
+  max-height: 280px;
+}
+
 .detail-desc {
   color: var(--fp-text-muted);
   margin: 0;
   font-size: 15px;
   line-height: 1.5;
+}
+
+.detail-desc-long {
+  font-size: 16px;
+  line-height: 1.75;
+  margin-top: 8px;
+  max-width: 56ch;
 }
 
 /* Playable activity area */

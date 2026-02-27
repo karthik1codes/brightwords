@@ -37,7 +37,7 @@ const SignLanguage = () => {
         <iframe
           id="signLanguageFrame"
           className="sign-language-iframe"
-          src="/signtranslator/learnsign/client/build/index.html#/sign-kit/convert"
+          src="/Sign%20Language/signtranslator/learnsign/client/build/index.html#/sign-kit/convert"
           title="Sign Language Learning App"
           allow="camera; microphone; autoplay"
           sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-modals allow-downloads"

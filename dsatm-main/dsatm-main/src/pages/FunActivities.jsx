@@ -3,6 +3,12 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAnnouncement } from '../hooks/useAnnouncement'
 import { speak } from '../utils/voice'
 import { playClick, playSuccess } from '../utils/sound'
+import PhonicsFun from '../components/activities/PhonicsFun'
+import MemoryMaster from '../components/activities/MemoryMaster'
+import StoryCreator from '../components/activities/StoryCreator'
+import SpellingWizard from '../components/activities/SpellingWizard'
+import WritingArtist from '../components/activities/WritingArtist'
+import StoryExplorer from '../components/activities/StoryExplorer'
 import '../styles/FunActivities.css'
 
 const defaultActivities = [
@@ -205,6 +211,14 @@ const FunActivities = () => {
           <div className="detail-header">
             <h2 id="activityTitle">{activeActivity.title}</h2>
             <p className="detail-desc">{activeActivity.description}</p>
+          </div>
+          <div className="activity-game-container">
+            {activeId === 'phonics' && <PhonicsFun onFocus={(t) => speak(t)} />}
+            {activeId === 'memory' && <MemoryMaster onFocus={(t) => speak(t)} />}
+            {activeId === 'stories' && <StoryCreator onFocus={(t) => speak(t)} />}
+            {activeId === 'spelling' && <SpellingWizard onFocus={(t) => speak(t)} />}
+            {activeId === 'writing' && <WritingArtist onFocus={(t) => speak(t)} />}
+            {activeId === 'reading' && <StoryExplorer onFocus={(t) => speak(t)} />}
           </div>
           <div className="tips" role="list" aria-label="Activity tips">
             {activeActivity.tips.map((tip, idx) => (

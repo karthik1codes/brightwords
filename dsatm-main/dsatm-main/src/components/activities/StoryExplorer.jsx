@@ -1,49 +1,153 @@
-import React, { useState } from 'react'
-import { speak } from '../../utils/voice'
+import React, { useState, useCallback, useMemo } from 'react'
 import { playClick } from '../../utils/sound'
 
-const PASSAGE = 'The sun was high in the sky. A small bird sat on a branch. It sang a sweet song. Then it flew away to find food.'
+const STORIES = [
+  {
+    title: 'The Little Bird',
+    text: 'The sun was high in the sky. A small bird sat on a branch. It sang a sweet song. Then it flew away to find food.',
+  },
+  {
+    title: 'The Kind Dog',
+    text: 'Max was a kind dog. He lived with a girl named Lily. Every day Max walked with Lily to the park. They played with a big red ball. Max was the happiest dog in the world.',
+  },
+  {
+    title: 'The Rainy Day',
+    text: 'It was a rainy day. Sam looked out of the window. He saw puddles on the street. He put on his yellow raincoat and boots. Sam went outside to splash in the puddles.',
+  },
+  {
+    title: 'The Garden',
+    text: 'Nina had a small garden. She planted seeds in the soil. She watered them every morning. Soon green leaves grew. Then bright flowers bloomed in the sun.',
+  },
+  {
+    title: 'The Lost Kite',
+    text: 'Ben flew his kite at the park. The wind was strong. The kite went up and up. Then the string broke. Ben ran to find his kite and found it in a tree.',
+  },
+]
 
-const WORDS = PASSAGE.split(/\s+/)
+const MIN_RATE = 0.5
+const MAX_RATE = 1.5
+const RATE_STEP = 0.1
+const DEFAULT_RATE = 1
 
-function speakWord(w) {
+function speakWithRate(text, rate = 1) {
   if (!window.speechSynthesis) return
   window.speechSynthesis.cancel()
-  const u = new SpeechSynthesisUtterance(w)
+  const u = new SpeechSynthesisUtterance(text)
   u.lang = 'en-US'
-  u.rate = 0.85
+  u.rate = Math.max(MIN_RATE, Math.min(MAX_RATE, rate))
+  u.pitch = 1
+  u.volume = 1
   window.speechSynthesis.speak(u)
 }
 
 export default function StoryExplorer({ onFocus }) {
   const [highlighted, setHighlighted] = useState(null)
+  const [speed, setSpeed] = useState(DEFAULT_RATE)
+  const [storyIndex, setStoryIndex] = useState(0)
 
-  const readAll = () => {
+  const currentStory = STORIES[storyIndex]
+  const passage = currentStory?.text ?? ''
+  const words = useMemo(() => passage.split(/\s+/), [passage])
+
+  const readAll = useCallback(() => {
     playClick()
-    speak(PASSAGE)
-    if (onFocus) onFocus('Reading passage aloud')
-  }
+    if (!passage) return
+    speakWithRate(passage, speed)
+    if (onFocus) onFocus('Reading entire story aloud')
+  }, [passage, speed, onFocus])
 
-  const onWordClick = (word) => {
+  const onWordClick = useCallback((word) => {
     playClick()
     setHighlighted(word)
-    speakWord(word)
+    speakWithRate(word, speed)
+  }, [speed])
+
+  const handleSpeedChange = (e) => {
+    const value = parseFloat(e.target.value)
+    setSpeed(value)
+    playClick()
+  }
+
+  const goToStory = (delta) => {
+    playClick()
+    setHighlighted(null)
+    if (window.speechSynthesis) window.speechSynthesis.cancel()
+    setStoryIndex((i) => {
+      const next = i + delta
+      if (next < 0) return STORIES.length - 1
+      if (next >= STORIES.length) return 0
+      return next
+    })
   }
 
   return (
-    <div className="activity-play-area story-explorer" aria-label="Story Explorer - read and hear the passage">
-      <p className="activity-instruction">Click any word to hear it. Use "Read to me" to hear the whole passage.</p>
-      <button type="button" className="btn btn-primary" onClick={readAll} onFocus={() => onFocus && onFocus('Read to me')}>
-        🔊 Read to me
-      </button>
+    <div className="activity-play-area story-explorer" aria-label="Story Explorer - read and hear stories">
+      <p className="activity-instruction">Use &quot;Read to me&quot; to hear the entire story at once. Click any word to hear it again.</p>
+      <div className="story-explorer-controls">
+        <button
+          type="button"
+          className="btn btn-primary read-to-me-btn"
+          onClick={readAll}
+          onFocus={() => onFocus && onFocus('Read to me - reads entire story')}
+          aria-label="Read entire story aloud"
+        >
+          🔊 Read to me
+        </button>
+        <div className="speed-control" role="group" aria-label="Narration speed">
+          <label htmlFor="story-speed" className="speed-label">
+            Narration speed: <strong>{speed.toFixed(1)}×</strong>
+          </label>
+          <input
+            id="story-speed"
+            type="range"
+            min={MIN_RATE}
+            max={MAX_RATE}
+            step={RATE_STEP}
+            value={speed}
+            onChange={handleSpeedChange}
+            className="speed-slider"
+            aria-valuemin={MIN_RATE}
+            aria-valuemax={MAX_RATE}
+            aria-valuenow={speed}
+            aria-valuetext={`${speed.toFixed(1)} times speed`}
+          />
+          <div className="speed-marks" aria-hidden="true">
+            <span>0.5×</span>
+            <span>1×</span>
+            <span>1.5×</span>
+          </div>
+        </div>
+      </div>
+      <div className="story-picker">
+        <span className="story-picker-label">Story:</span>
+        <div className="story-picker-buttons">
+          <button
+            type="button"
+            className="btn btn-ghost story-nav-btn"
+            onClick={() => goToStory(-1)}
+            aria-label="Previous story"
+          >
+            ← Previous
+          </button>
+          <span className="story-picker-title" aria-live="polite">{currentStory?.title}</span>
+          <button
+            type="button"
+            className="btn btn-ghost story-nav-btn"
+            onClick={() => goToStory(1)}
+            aria-label="Next story"
+          >
+            Next →
+          </button>
+        </div>
+      </div>
       <div
         className="story-passage open-dyslexic"
         role="article"
-        aria-label="Story passage"
+        aria-label={`Story: ${currentStory?.title}`}
       >
-        {WORDS.map((word, i) => (
+        {words.map((word, i) => (
           <button
-            key={i}
+            key={`${storyIndex}-${i}`}
             type="button"
             className={`story-word ${highlighted === word ? 'highlighted' : ''}`}
             onClick={() => onWordClick(word)}
@@ -54,7 +158,7 @@ export default function StoryExplorer({ onFocus }) {
           </button>
         ))}
       </div>
-      <p className="activity-tip">Tip: Click a word to hear it again. Summarize the passage in your own words when done!</p>
+      <p className="activity-tip">Tip: Click a word to hear it again at the same speed. Summarize the passage in your own words when done!</p>
     </div>
   )
 }

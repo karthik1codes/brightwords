@@ -1,0 +1,253 @@
+body {
+    padding-top: 70px;
+}
+
+.heading{
+    margin-top: 30px;
+    text-align: center;
+}
+.space-between{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+.label-style{
+    font-size: 20px;
+    margin-top: 30px;
+}
+
+.input-style{
+    padding: 5px;
+    font-size: 20px !important;
+    margin-top: 20px !important;
+}
+
+.btn-style{
+    padding: 10px !important;
+    font-size: 20px !important;
+    margin-top: 20px !important;
+}
+
+.w-33{
+    width: 32%;
+}
+
+.btn-gap{
+    margin-top: 50px !important;
+}
+
+.bot-label{
+    margin-top: 20px;
+    font-size: 25px;
+    text-align: center;
+}
+
+.bot-image{
+    display: flex;
+    flex-direction: row;
+    margin: auto;
+    margin-top: 10px;
+    border-radius: 30px;
+    border-style: solid;
+    border-width: 2px;
+}
+
+.bot-image:hover{
+    border-width: 5px;
+}
+
+canvas{
+    border-style: solid;
+    border-width: 3px;
+}
+
+.btn-start{
+    border: none !important;
+    background-color: #4CAF50 !important;
+}
+
+i{
+    margin-left: 20px;
+}
+
+.home-gradient {
+    background: linear-gradient(135deg, #a8ff78 0%, #78ffd6 100%);
+    height: calc(100vh - 70px);
+    flex-direction: column;
+}
+
+.divider {
+    display: block;
+    height: 4px;
+    width: 5rem !important;
+    background: #f76c2f;
+}
+
+/* Section heading is now styled in the new styles above */
+
+.normal-text {
+    font-size: large;
+}
+
+.footer-text, .footer-link {
+    text-decoration: none;
+    color:darkgray;
+}
+
+.footer-link:hover {
+    color: white;
+}
+
+.card-footer-style {
+    background-color: darkblue !important;
+    color: white !important;
+    
+}
+
+.card-background {
+    background:  linear-gradient(50deg, rgb(191, 231, 241), #fff) !important;
+}
+
+.card-background:hover {
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
+/* Improved divider */
+.divider {
+    margin: 0 auto;
+    border-radius: 2px;
+}
+
+.signs{
+    margin-top: 10px;
+    height: 35px;
+    color: white;
+    font-weight: bold;
+    background-color: blue;
+    border-radius: 5px;
+}
+
+.hor-line {
+    border: 0;
+    clear:both;
+    display:block;
+    width: 85%;               
+    background-color: gainsboro;
+    height: 1px;
+}
+
+.welcome-title {
+  color: #0a0a0a;
+  font-size: 4rem;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  text-shadow: 0 4px 16px #b2f7b2, 0 1px 0 #fff;
+  animation: fadeBounceIn 1.2s cubic-bezier(.68,-0.55,.27,1.55);
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 768px) {
+  .welcome-title {
+    font-size: 2.5rem;
+  }
+}
+
+.home-gradient .subtitle {
+  color: #111111;
+  font-weight: 600;
+}
+
+@keyframes fadeBounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.7) translateY(-40px);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.05) translateY(10px);
+  }
+  80% {
+    transform: scale(0.98) translateY(-4px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Hero Button Styles */
+.hero-btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  color: white;
+}
+
+.hero-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,123,255,0.4) !important;
+  color: white;
+}
+
+.hero-btn-secondary {
+  border-color: rgba(255,255,255,0.8);
+  color: rgba(255,255,255,0.9);
+  background: rgba(255,255,255,0.1);
+  backdrop-filter: blur(10px);
+}
+
+.hero-btn-secondary:hover {
+  background: rgba(255,255,255,0.2);
+  border-color: white;
+  color: white;
+  transform: translateY(-2px);
+}
+
+/* Service Card Styles */
+.service-card {
+  border: none;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.service-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 24px rgba(0,0,0,0.15) !important;
+}
+
+.service-card:hover .card-img-wrapper img {
+  transform: scale(1.1);
+}
+
+.service-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  color: white;
+}
+
+.service-btn:hover {
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102,126,234,0.4);
+  color: white;
+}
+
+/* Section Heading Improvement */
+.section-heading {
+  color: #2c3e50;
+  font-weight: 700;
+}
+
+/* Smooth Scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Feature Icons */
+.feature-icon {
+  transition: transform 0.3s ease;
+}
+
+.feature-icon:hover {
+  transform: scale(1.2) rotate(5deg);
+}

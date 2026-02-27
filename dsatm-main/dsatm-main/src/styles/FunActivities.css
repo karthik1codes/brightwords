@@ -780,6 +780,13 @@
   color: #991b1b;
 }
 
+.writing-feedback-ai {
+  margin: 8px 0 0 0;
+  font-size: 14px;
+  color: var(--fp-text-muted);
+  font-style: italic;
+}
+
 .writing-dashboard-nav {
   display: flex;
   gap: 12px;
@@ -1039,6 +1046,29 @@
   font-weight: 700;
   font-size: 13px;
 }
+
+/* Activity AI modals */
+.activity-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+.activity-modal {
+  background: var(--fp-surface);
+  border-radius: 16px;
+  padding: 24px;
+  max-width: 420px;
+  width: 100%;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+.activity-modal h3 { margin: 0 0 12px 0; font-size: 1.15rem; }
+.activity-modal p { margin: 0; color: var(--fp-text-muted); line-height: 1.5; }
+.activity-modal-actions { margin-top: 16px; display: flex; justify-content: flex-end; gap: 8px; }
 
 @media (max-width: 900px) {
   .fun-layout {

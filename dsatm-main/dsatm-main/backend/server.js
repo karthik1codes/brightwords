@@ -12,7 +12,7 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 // Configure CORS to allow requests from main app and Sign Language client
 app.use(cors({
-    origin: ['http://localhost:8000', 'http://127.0.0.1:8000', 'http://localhost:9000', 'http://localhost:3001'],
+    origin: ['http://localhost:8000', 'http://127.0.0.1:8000', 'http://localhost:9000', 'http://localhost:3001', 'http://localhost:8001', 'http://127.0.0.1:8001'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
@@ -1183,6 +1183,133 @@ app.post('/api/sign-language/chat', async (req, res) => {
     } catch (err) {
         console.error('Sign-language chat error:', err.message);
         return res.status(500).json({ error: err.message || 'Failed to get reply', reply: '' });
+    }
+});
+
+// ========== Fun Activities AI (Groq) routes ==========
+
+app.post('/api/fun-activities/phonics-explain', async (req, res) => {
+    try {
+        const { letter } = req.body || {};
+        const L = typeof letter === 'string' ? letter.trim().toUpperCase() : '';
+        if (!L || L.length !== 1 || !/^[A-Z]$/.test(L)) {
+            return res.status(400).json({ error: 'Missing or invalid body: { letter: "A"-"Z" }' });
+        }
+        const systemPrompt = 'You are a friendly phonics tutor for children. In 1 to 2 short sentences, explain how to make or remember the sound for this letter. Use simple language. Do not use markdown.';
+        const explanation = await llmChat(systemPrompt, `Explain the sound for the letter ${L}.`, 150);
+        return res.json({ explanation });
+    } catch (err) {
+        console.error('Fun-activities phonics-explain error:', err.message);
+        return res.status(500).json({ error: err.message || 'Failed to get explanation', explanation: '' });
+    }
+});
+
+app.post('/api/fun-activities/spelling-words', async (req, res) => {
+    try {
+        const level = (req.body?.level || 'easy').toLowerCase();
+        const topic = (req.body?.topic || 'everyday').toLowerCase();
+        const systemPrompt = `You are a spelling practice helper. Return a JSON array of exactly 8 simple English words suitable for spelling practice. Level: ${level}. Topic: ${topic}. Use only lowercase, short words (e.g. cat, run, sun). Reply with ONLY a JSON array, no other text. Example: ["cat","dog","sun","hat","run","bug","pet","red"]`;
+        const raw = await llmChat(systemPrompt, `Generate 8 words for level=${level} topic=${topic}.`, 150);
+        const arrMatch = raw.match(/\[[\s\S]*?\]/);
+        const words = arrMatch ? JSON.parse(arrMatch) : ['cat', 'dog', 'sun', 'hat', 'run', 'bug', 'pet', 'red'];
+        const list = Array.isArray(words) ? words.filter(w => typeof w === 'string').map(w => w.toLowerCase().trim()).slice(0, 12) : ['cat', 'dog', 'sun', 'hat', 'run', 'bug', 'pet', 'red'];
+        return res.json({ words: list.length ? list : ['cat', 'dog', 'sun', 'hat', 'run', 'bug', 'pet', 'red'] });
+    } catch (err) {
+        console.error('Fun-activities spelling-words error:', err.message);
+        return res.status(500).json({ words: ['cat', 'dog', 'sun', 'hat', 'run', 'bug', 'pet', 'red'] });
+    }
+});
+
+app.post('/api/fun-activities/spelling-hint', async (req, res) => {
+    try {
+        const word = (req.body?.word || '').toLowerCase().trim();
+        if (!word) return res.status(400).json({ error: 'Missing body: { word }', hint: '' });
+        const systemPrompt = 'You are a spelling game hint helper. Give a ONE short sentence clue that describes the word so the child can guess it, but do NOT say the word itself. Use simple language. Do not use markdown.';
+        const hint = await llmChat(systemPrompt, `Word to hint (do not say this word): ${word}. Give one sentence clue.`, 80);
+        return res.json({ hint: hint.trim() });
+    } catch (err) {
+        console.error('Fun-activities spelling-hint error:', err.message);
+        return res.status(500).json({ error: err.message || 'Failed to get hint', hint: '' });
+    }
+});
+
+app.post('/api/fun-activities/story-generate', async (req, res) => {
+    try {
+        const { setting, character, goal } = req.body || {};
+        if (!setting || !character || !goal) {
+            return res.status(400).json({ error: 'Missing body: { setting, character, goal }', story: '' });
+        }
+        const systemPrompt = 'You are a children\'s story writer. Write a short story (3 to 5 sentences) that includes the given setting, character, and goal. Use simple words and a clear beginning, middle, and end. Output only the story, no title or extra text. Do not use markdown.';
+        const userMessage = `Setting: ${setting}. Character: ${character}. Goal: ${goal}.`;
+        const story = await llmChat(systemPrompt, userMessage, 300);
+        return res.json({ story: story.trim() });
+    } catch (err) {
+        console.error('Fun-activities story-generate error:', err.message);
+        return res.status(500).json({ error: err.message || 'Failed to generate story', story: '' });
+    }
+});
+
+app.post('/api/fun-activities/story-passage', async (req, res) => {
+    try {
+        const topic = (req.body?.topic || 'nature').toLowerCase();
+        const level = (req.body?.level || 'easy').toLowerCase();
+        const systemPrompt = `You are a children's reading passage writer. Write ONE short paragraph (3 to 5 simple sentences) for kids to read. Topic: ${topic}. Level: ${level}. Reply with a JSON object only: {"title":"Short title","text":"The paragraph text."}. No other text.`;
+        const raw = await llmChat(systemPrompt, `Generate one short passage. Topic: ${topic}, level: ${level}.`, 250);
+        const jsonMatch = raw.match(/\{[\s\S]*\}/);
+        const parsed = jsonMatch ? JSON.parse(jsonMatch) : {};
+        const title = parsed.title || 'New Story';
+        const text = parsed.text || '';
+        return res.json({ title, text });
+    } catch (err) {
+        console.error('Fun-activities story-passage error:', err.message);
+        return res.status(500).json({ title: 'New Story', text: '', error: err.message });
+    }
+});
+
+app.post('/api/fun-activities/story-explain', async (req, res) => {
+    try {
+        const { text, type } = req.body || {};
+        const t = typeof text === 'string' ? text.trim() : '';
+        if (!t) return res.status(400).json({ error: 'Missing body: { text }', explanation: '', question: '', suggestedAnswer: '' });
+        const isQuestion = (type || 'explain').toLowerCase() === 'question';
+        const systemPrompt = isQuestion
+            ? 'You are a reading comprehension helper for children. Based on the given text, ask ONE simple question that a child can answer (e.g. "What did the bird do?"). Then give a short suggested answer. Reply in JSON only: {"question":"...","suggestedAnswer":"..."}. No other text.'
+            : 'You are a reading helper for children. In 1 to 2 short sentences, explain the given text in simple language. Reply in JSON only: {"explanation":"..."}. No other text.';
+        const raw = await llmChat(systemPrompt, `Text: ${t.slice(0, 500)}.`, 150);
+        const jsonMatch = raw.match(/\{[\s\S]*\}/);
+        const parsed = jsonMatch ? JSON.parse(jsonMatch) : {};
+        if (isQuestion) return res.json({ question: parsed.question || '', suggestedAnswer: parsed.suggestedAnswer || '' });
+        return res.json({ explanation: parsed.explanation || '' });
+    } catch (err) {
+        console.error('Fun-activities story-explain error:', err.message);
+        return res.status(500).json({ error: err.message || 'Failed', explanation: '', question: '', suggestedAnswer: '' });
+    }
+});
+
+app.post('/api/fun-activities/memory-hint', async (req, res) => {
+    try {
+        const { emoji } = req.body || {};
+        if (emoji === undefined || emoji === null) return res.status(400).json({ error: 'Missing body: { emoji }', hint: '' });
+        const systemPrompt = 'You are a memory game hint helper for children. In ONE short sentence, describe this emoji so a child can guess it (e.g. "An animal that barks"). Do NOT say the word or the emoji name. Use simple language. No markdown.';
+        const hint = await llmChat(systemPrompt, `Emoji to describe (do not name it): ${emoji}. One sentence hint.`, 60);
+        return res.json({ hint: hint.trim() });
+    } catch (err) {
+        console.error('Fun-activities memory-hint error:', err.message);
+        return res.status(500).json({ error: err.message || 'Failed to get hint', hint: '' });
+    }
+});
+
+app.post('/api/fun-activities/writing-feedback', async (req, res) => {
+    try {
+        const { itemId, correct } = req.body || {};
+        const id = typeof itemId === 'string' ? itemId.trim() : 'shape';
+        const isCorrect = correct === true;
+        const systemPrompt = 'You are a kind writing practice coach for children. The learner just practiced drawing: ' + id + '. They got it ' + (isCorrect ? 'correct' : 'incorrect') + '. Reply with ONE short, kind sentence: either one specific tip to improve (if incorrect) or praise (if correct). No markdown.';
+        const feedback = await llmChat(systemPrompt, 'Give one sentence only.', 80);
+        return res.json({ feedback: feedback.trim() });
+    } catch (err) {
+        console.error('Fun-activities writing-feedback error:', err.message);
+        return res.status(500).json({ error: err.message || 'Failed', feedback: '' });
     }
 });
 

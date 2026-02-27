@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { playClick, playSuccess } from '../../utils/sound'
+import { writingFeedback } from '../../utils/funActivitiesApi'
 
 function speakStep(text) {
   if (!window.speechSynthesis) return
@@ -180,6 +181,7 @@ export default function WritingArtist({ onFocus }) {
   const [current, setCurrent] = useState(0)
   const [strokes, setStrokes] = useState([])
   const [feedback, setFeedback] = useState(null)
+  const [aiFeedback, setAiFeedback] = useState('')
 
   const items = mode === 'shapes' ? SHAPES : mode === 'letters' ? LETTERS : []
   const item = items[current]
@@ -193,20 +195,26 @@ export default function WritingArtist({ onFocus }) {
     if (!item) return
     const result = validateDrawing(strokes, item.id, mode)
     setFeedback(result)
+    setAiFeedback('')
     if (result.correct) playSuccess()
     speakStep(result.message)
+    writingFeedback(item.id, result.correct)
+      .then((text) => setAiFeedback(text || ''))
+      .catch(() => setAiFeedback(''))
   }
 
   const handleClear = () => {
     playClick()
     setStrokes([])
     setFeedback(null)
+    setAiFeedback('')
   }
 
   const handleTryNext = () => {
     playClick()
     setStrokes([])
     setFeedback(null)
+    setAiFeedback('')
     setCurrent((c) => (c + 1) % items.length)
   }
 
@@ -216,6 +224,7 @@ export default function WritingArtist({ onFocus }) {
     setCurrent(0)
     setStrokes([])
     setFeedback(null)
+    setAiFeedback('')
   }
 
   const handleStartOver = () => {
@@ -224,6 +233,7 @@ export default function WritingArtist({ onFocus }) {
     setCurrent(0)
     setStrokes([])
     setFeedback(null)
+    setAiFeedback('')
   }
 
   if (mode === null) {
@@ -284,6 +294,7 @@ export default function WritingArtist({ onFocus }) {
         <div className={`writing-feedback ${feedback.correct ? 'correct' : 'wrong'}`} role="status">
           <span className="writing-feedback-icon">{feedback.correct ? '✓' : '✗'}</span>
           <p className="writing-feedback-message">{feedback.message}</p>
+          {aiFeedback && <p className="writing-feedback-ai">{aiFeedback}</p>}
         </div>
       )}
       <div className="writing-dashboard-nav">

@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { playClick } from '../../utils/sound'
+import { phonicsExplain } from '../../utils/funActivitiesApi'
 
 // Clear phonics phrases - letter name and sound for accurate, consistent output
 const LETTER_SOUNDS = {
@@ -14,6 +15,8 @@ const LETTERS = Object.keys(LETTER_SOUNDS)
 
 export default function PhonicsFun({ onFocus }) {
   const [slowMode, setSlowMode] = useState(false)
+  const [lastPlayedLetter, setLastPlayedLetter] = useState('A')
+  const [explainModal, setExplainModal] = useState({ show: false, loading: false, explanation: '', error: '' })
   const speakTimeoutRef = useRef(null)
 
   useEffect(() => {
@@ -48,8 +51,19 @@ export default function PhonicsFun({ onFocus }) {
 
   const handleTileClick = (letter) => {
     playClick()
+    setLastPlayedLetter(letter)
     speakPhonics(letter)
-    // Do not speak again via onFocus - we already spoke in speakPhonics (avoids double/lag)
+  }
+
+  const handleExplain = async () => {
+    playClick()
+    setExplainModal({ show: true, loading: true, explanation: '', error: '' })
+    try {
+      const explanation = await phonicsExplain(lastPlayedLetter)
+      setExplainModal(prev => ({ ...prev, loading: false, explanation, error: '' }))
+    } catch (err) {
+      setExplainModal(prev => ({ ...prev, loading: false, explanation: '', error: err.message || 'Failed to load' }))
+    }
   }
 
   return (
@@ -64,6 +78,9 @@ export default function PhonicsFun({ onFocus }) {
         />
         <span>Slow mode</span>
       </label>
+      <button type="button" className="btn btn-secondary" onClick={handleExplain} style={{ marginBottom: 12 }}>
+        Explain this sound (AI)
+      </button>
       <div className="phonics-grid" role="list">
         {LETTERS.map((letter) => (
           <button
@@ -79,6 +96,19 @@ export default function PhonicsFun({ onFocus }) {
           </button>
         ))}
       </div>
+      {explainModal.show && (
+        <div className="activity-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="phonicsExplainTitle" onClick={() => setExplainModal(prev => ({ ...prev, show: false }))}>
+          <div className="activity-modal" onClick={e => e.stopPropagation()}>
+            <h3 id="phonicsExplainTitle">Explain sound: {lastPlayedLetter}</h3>
+            {explainModal.loading && <p>Loading...</p>}
+            {explainModal.error && <p className="activity-feedback error">{explainModal.error}</p>}
+            {!explainModal.loading && explainModal.explanation && <p>{explainModal.explanation}</p>}
+            <div className="activity-modal-actions">
+              <button type="button" className="btn btn-primary" onClick={() => setExplainModal(prev => ({ ...prev, show: false }))}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

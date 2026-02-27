@@ -28,6 +28,39 @@ const razorpay = new Razorpay({
     key_secret: process.env.RAZORPAY_KEY_SECRET || 'YOUR_RAZORPAY_KEY_SECRET'
 });
 
+// ========== Groq LLM for BrightWords AI ==========
+const GROQ_API_KEY = (process.env.GROQ_API_KEY || '').trim();
+const GROQ_BASE = 'https://api.groq.com/openai/v1';
+
+async function groqChat(systemPrompt, userMessage, maxTokens = 400) {
+    if (!GROQ_API_KEY) {
+        throw new Error('GROQ_API_KEY is not set in environment. Get a free key at https://console.groq.com');
+    }
+    const res = await fetch(`${GROQ_BASE}/chat/completions`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${GROQ_API_KEY}`,
+        },
+        body: JSON.stringify({
+            model: process.env.GROQ_MODEL || 'llama-3.1-8b-instant',
+            messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: userMessage },
+            ],
+            max_tokens: maxTokens,
+            temperature: 0.4,
+        }),
+    });
+    if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`Groq API error ${res.status}: ${errText}`);
+    }
+    const data = await res.json();
+    const content = data.choices?.[0]?.message?.content?.trim() || '';
+    return content;
+}
+
 // Log Razorpay initialization status
 if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
     console.log('✅ Razorpay initialized with Key ID:', process.env.RAZORPAY_KEY_ID.substring(0, 15) + '...');
@@ -225,6 +258,51 @@ function generateReceiptId(userEmail, planType) {
 // Health check
 app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', message: 'BrightWords Subscription API is running' });
+});
+
+// BrightWords AI – assistive processing (speech/question → simplified text, emotion, ASL gloss, response)
+const BRIGHTWORDS_AI_SYSTEM = `You are BrightWords AI, an intelligent assistive system for children with hearing or cognitive challenges.
+
+Your responsibilities:
+1. If input is speech transcript: Clean grammar. Simplify language to grade 3 level. Detect emotional tone (happy, neutral, confused, frustrated). Convert final sentence into ASL gloss format. Follow ASL grammar (Time – Topic – Comment). Remove helping verbs. Use uppercase for gloss.
+2. If user is asking a question: Answer in simple, short sentences. Use encouraging tone. Avoid complex vocabulary.
+3. Always return ONLY valid JSON in this exact format, no other text:
+{"simplified_text":"...","emotion_detected":"...","asl_gloss":"...","ai_response":"...","avatar_style":"calm" or "energetic" or "supportive"}
+avatar_style must be exactly one of: calm, energetic, supportive.`;
+
+app.post('/api/brightwords-ai/process', async (req, res) => {
+    try {
+        const { input, score } = req.body || {};
+        const text = (input || '').trim();
+        if (!text) {
+            return res.status(400).json({ error: 'Missing input. Send JSON: { "input": "..." }' });
+        }
+        if (!GROQ_API_KEY) {
+            return res.status(503).json({
+                error: 'BrightWords AI unavailable',
+                details: 'GROQ_API_KEY not set in backend .env'
+            });
+        }
+        const scoreNote = typeof score === 'number' ? ` Based on past performance score: ${score}. Adjust difficulty (simplify if low, slightly challenge if high).` : '';
+        const userMessage = `Input: "${text}"${scoreNote}\n\nRespond with ONLY the JSON object, no markdown or explanation.`;
+        const raw = await groqChat(BRIGHTWORDS_AI_SYSTEM, userMessage, 350);
+        let jsonStr = raw.replace(/^[\s\S]*?(\{[\s\S]*\})[\s\S]*$/, '$1').trim();
+        const parsed = JSON.parse(jsonStr);
+        const out = {
+            simplified_text: parsed.simplified_text ?? '',
+            emotion_detected: parsed.emotion_detected ?? 'neutral',
+            asl_gloss: parsed.asl_gloss ?? '',
+            ai_response: parsed.ai_response ?? '',
+            avatar_style: ['calm', 'energetic', 'supportive'].includes(parsed.avatar_style) ? parsed.avatar_style : 'calm'
+        };
+        return res.json(out);
+    } catch (err) {
+        console.error('BrightWords AI error:', err.message);
+        return res.status(500).json({
+            error: 'Processing failed',
+            details: err.message
+        });
+    }
 });
 
 // Helper to get user by unified_user_id or email

@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Text-to-Speech with Amazon Polly</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <script src="https://kit.fontawesome.com/692060e681.js" crossorigin="anonymous"></script>
+        <link rel="stylesheet" href="style/shoelace.css" />
+        <link rel="stylesheet" href="style/styles.css" />
+
+        <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16x16.png" />
+        <link rel="manifest" href="manifest.json" crossorigin="use-credentials" />
+    </head>
+
+    <body>
+        <div>
+            <p style="text-align: left; font-size: 20px;">
+                <a href="index-landing.html" title="Back to previous page" style="color: #000000;">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <b>&nbsp;&nbsp;&nbsp;Text-to-Speech with Amazon Polly</b>
+            </p>
+
+            <div class="language" style="text-align: center; margin: 20px 0;">
+                <label for="language">Select a language:</label>
+                <select id="language" style="margin-left: 10px; padding: 5px; font-size: 16px;">
+                    <option value="auto">Automatic language identification</option>
+                    <option value="ar-AE">Arabic (Gulf)</option>
+                    <option value="ca-ES">Catalan</option>
+                    <option value="zh-CN">Chinese (Mandarin, Simplified)</option>
+                    <option value="cs-CZ">Czech</option>
+                    <option value="da-DK">Danish</option>
+                    <optgroup label="English">
+                        <option value="en-AU">Australian English</option>
+                        <option value="en-GB">British English</option>
+                        <option value="en-IN">Indian English</option>
+                        <option value="en-NZ">New Zealand English</option>
+                        <option value="en-ZA">South African English</option>
+                        <option selected value="en-US">US English</option>
+                    </optgroup>
+                    <option value="fi-FI">Finnish</option>
+                    <optgroup label="French">
+                        <option value="fr-FR">French</option>
+                        <option value="fr-CA">Canadian French</option>
+                    </optgroup>
+                    <optgroup label="German">
+                        <option value="de-DE">German</option>
+                        <option value="de-CH">Swiss German</option>
+                    </optgroup>
+                    <option value="hi-IN">Hindi</option>
+                    <option value="it-IT">Italian</option>
+                    <option value="ja-JP">Japanese</option>
+                    <option value="ko-KR">Korean</option>
+                    <option value="pl-PL">Polish</option>
+                    <optgroup label="Portuguese">
+                        <option value="pt-PT">Portuguese</option>
+                        <option value="pt-BR">Brazilian Portuguese</option>
+                    </optgroup>
+                    <option value="ro-RO">Romanian</option>
+                    <option value="ru-RU">Russian</option>
+                    <optgroup label="Spanish">
+                        <option value="es-ES">Spanish</option>
+                        <option value="es-US">US Spanish</option>
+                    </optgroup>
+                    <option value="sv-SE">Swedish</option>
+                </select>
+            </div>
+        </div>
+        <br />
+
+        <div class="container-box" style="max-width: 800px; margin: 0 auto; padding: 20px;">
+            <div id="text-to-speech-container" style="text-align: center;">
+                <h3 style="margin-bottom: 20px;">Enter text to convert to speech</h3>
+                
+                <div style="margin-bottom: 20px;">
+                    <textarea 
+                        id="textEntry" 
+                        placeholder="Enter here what you want to say" 
+                        rows="8" 
+                        cols="60"
+                        style="width: 100%; max-width: 600px; padding: 10px; font-size: 16px; border: 2px solid #ccc; border-radius: 5px; resize: vertical;"
+                    ></textarea>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <button 
+                        id="play-button" 
+                        class="button-l" 
+                        style="padding: 12px 30px; font-size: 18px; background-color: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer;"
+                    >
+                        <i class="fas fa-play"></i> Say it for me
+                    </button>
+                    
+                    <button 
+                        id="clear-button" 
+                        class="button-l" 
+                        style="padding: 12px 30px; font-size: 18px; background-color: #f44336; color: white; border: none; border-radius: 5px; cursor: pointer; margin-left: 10px;"
+                    >
+                        <i class="fas fa-trash"></i> Clear
+                    </button>
+                </div>
+
+                <div id="error-message" class="isa_error" style="display: none; margin: 20px 0;"></div>
+
+                <div id="status-message" style="margin: 20px 0; color: #666; font-size: 14px;"></div>
+                
+                <!-- Result element for speakText function error messages -->
+                <div id="result" style="display: none;"></div>
+
+                <audio id="audioPlayback" controls autoplay style="width: 100%; max-width: 600px; margin-top: 20px; display: none;">
+                    <source id="audioSource" type="audio/mp3" src="" />
+                    Your browser does not support the audio element.
+                </audio>
+            </div>
+        </div>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+        <script src="lib/aws-sdk-2.1665.0.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/aws-amplify/4.3.46/aws-amplify.min.js"></script>
+        <script src="config.js"></script>
+        <script src="dist/main.js"></script>
+        
+        <script>
+        // Custom script for this page - uses Amazon Polly for text-to-speech
+        // Wait for all scripts to load
+        $(document).ready(function() {
+            // Wait a bit longer for main.js to fully initialize
+            setTimeout(function() {
+                console.log("Initializing text-to-speech page...");
+                console.log("speakText available:", typeof speakText !== 'undefined');
+                console.log("setLanguage available:", typeof setLanguage !== 'undefined');
+                console.log("AWS available:", typeof AWS !== 'undefined');
+                
+                // Clear button handler
+                $("#clear-button").click(function() {
+                    $("#textEntry").val("");
+                    $("#audioPlayback").hide();
+                    $("#error-message").hide();
+                    $("#status-message").text("");
+                });
+                
+                // Override the existing play-button handler from main.js
+                // We need to do this after main.js loads
+                $("#play-button").off('click');
+                
+                // Play button handler - uses Amazon Polly
+                $("#play-button").click(function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    var textToSpeak = $("#textEntry").val().trim();
+                    var selectedLanguage = $("#language").val();
+                    
+                    if (!textToSpeak) {
+                        $("#error-message").text("Please enter some text to convert to speech.").show();
+                        return false;
+                    }
+                    
+                    if (selectedLanguage === "auto") {
+                        $("#error-message").text("Please select a specific language (automatic detection not supported).").show();
+                        return false;
+                    }
+                    
+                    // Hide previous errors
+                    $("#error-message").hide();
+                    $("#status-message").text("Processing... Please wait.");
+                    
+                    // Disable button during processing
+                    var playButton = $(this);
+                    playButton.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Processing...');
+                    
+                    // Check if AWS credentials are available first
+                    if (!AWS || !AWS.config || !AWS.config.credentials) {
+                        $("#error-message").text("AWS credentials not available. Please refresh the page or sign in.").show();
+                        $("#status-message").text("");
+                        playButton.prop('disabled', false).html('<i class="fas fa-play"></i> Say it for me');
+                        return false;
+                    }
+                    
+                    // Check AWS credentials before proceeding
+                    if (AWS.config.credentials && AWS.config.credentials.accessKeyId) {
+                        console.log("AWS credentials found");
+                    } else {
+                        console.warn("AWS credentials not ready, attempting to initialize...");
+                        // Try to initialize credentials if not available
+                        if (typeof appConfig !== 'undefined' && appConfig.IdentityPoolId) {
+                            try {
+                                AWS.config.credentials = new AWS.CognitoIdentityCredentials({
+                                    IdentityPoolId: appConfig.IdentityPoolId
+                                });
+                                AWS.config.credentials.get(function(err) {
+                                    if (err) {
+                                        console.error("Error getting credentials:", err);
+                                        $("#error-message").text("AWS credentials error: " + (err.message || "Please refresh the page or sign in.")).show();
+                                        $("#status-message").text("");
+                                        playButton.prop('disabled', false).html('<i class="fas fa-play"></i> Say it for me');
+                                        return false;
+                                    }
+                                    // Retry after credentials are ready
+                                    $("#play-button").trigger('click');
+                                });
+                                return false;
+                            } catch(credError) {
+                                console.error("Error initializing credentials:", credError);
+                            }
+                        }
+                    }
+                    
+                    // Use the existing speakText function from main.js
+                    if (typeof speakText !== 'undefined' && typeof setLanguage !== 'undefined') {
+                        try {
+                            // Set the language first (this updates the global languageCode variable)
+                            setLanguage();
+                            
+                            console.log("Language set to:", typeof languageCode !== 'undefined' ? languageCode : "undefined");
+                            console.log("Text to speak:", textToSpeak.substring(0, 50));
+                            console.log("Polly voice map available:", typeof pollyVoiceMap !== 'undefined');
+                            if (typeof pollyVoiceMap !== 'undefined' && typeof languageCode !== 'undefined') {
+                                console.log("Voice for language:", pollyVoiceMap.get(languageCode));
+                            }
+                            
+                            // Call speakText - it reads from textEntry and uses the selected language
+                            // But first, let's make sure textEntry has our text
+                            if ($("#textEntry").val().trim() !== textToSpeak) {
+                                $("#textEntry").val(textToSpeak);
+                            }
+                            
+                            speakText();
+                            
+                            // Monitor for audio source update (speakText updates audioSource.src via the presigned URL)
+                            var audioSource = document.getElementById("audioSource");
+                            var audioElement = document.getElementById("audioPlayback");
+                            var attempts = 0;
+                            var maxAttempts = 100; // Check for 10 seconds
+                            
+                            var checkInterval = setInterval(function() {
+                                attempts++;
+                                if (audioSource && audioSource.src && audioSource.src !== "" && !audioSource.src.includes("data:")) {
+                                    clearInterval(checkInterval);
+                                    $("#audioPlayback").css("display", "block");
+                                    $("#status-message").text("Ready to play!");
+                                    playButton.prop('disabled', false).html('<i class="fas fa-play"></i> Say it for me');
+                                    
+                                    // Force audio load
+                                    audioElement.load();
+                                    
+                                    audioElement.oncanplay = function() {
+                                        $("#status-message").text("Audio ready!");
+                                    };
+                                    
+                                    audioElement.onerror = function(e) {
+                                        console.error("Audio element error:", e);
+                                        $("#error-message").text("Error loading audio. Please check your AWS credentials and try again.").show();
+                                        $("#status-message").text("");
+                                        playButton.prop('disabled', false).html('<i class="fas fa-play"></i> Say it for me');
+                                    };
+                                    
+                                    // Also check for result element (speakText might show errors there)
+                                    var resultElement = document.getElementById("result");
+                                    if (resultElement && resultElement.innerHTML && resultElement.innerHTML.includes("wrong")) {
+                                        $("#error-message").text(resultElement.innerHTML).show();
+                                        $("#status-message").text("");
+                                        playButton.prop('disabled', false).html('<i class="fas fa-play"></i> Say it for me');
+                                    }
+                                } else if (attempts >= maxAttempts) {
+                                    clearInterval(checkInterval);
+                                    // Check for result element for error messages
+                                    var resultElement = document.getElementById("result");
+                                    if (resultElement && resultElement.innerHTML) {
+                                        $("#error-message").text(resultElement.innerHTML || "Request timed out. Please check your AWS credentials and try again.").show();
+                                    } else {
+                                        $("#error-message").text("Request timed out. Please check your AWS credentials and try again.").show();
+                                    }
+                                    $("#status-message").text("");
+                                    playButton.prop('disabled', false).html('<i class="fas fa-play"></i> Say it for me');
+                                }
+                            }, 100);
+                            
+                        } catch (error) {
+                            console.error("Error calling speakText:", error);
+                            $("#error-message").text("Error: " + (error.message || "Failed to synthesize speech. Please check your AWS credentials.")).show();
+                            $("#status-message").text("");
+                            playButton.prop('disabled', false).html('<i class="fas fa-play"></i> Say it for me');
+                        }
+                    } else {
+                        console.warn("speakText function not available, using fallback");
+                        // Fallback: direct Polly call if functions aren't available
+                        synthesizeSpeechWithPolly(textToSpeak, selectedLanguage, playButton);
+                    }
+                    
+                    return false;
+                });
+                
+                // Function to directly call Amazon Polly (fallback)
+                function synthesizeSpeechWithPolly(text, languageCode, button) {
+                    // Get voice ID from the pollyVoiceMap
+                    var voiceId = "Joanna"; // Default
+                    if (typeof pollyVoiceMap !== 'undefined') {
+                        var mappedVoice = pollyVoiceMap.get(languageCode);
+                        if (mappedVoice) {
+                            voiceId = mappedVoice;
+                        } else {
+                            console.warn("Voice not found for language:", languageCode, "using default:", voiceId);
+                        }
+                    }
+                    
+                    // Get region from config
+                    var awsRegion = (typeof amplifyConfig !== 'undefined' && amplifyConfig.Auth && amplifyConfig.Auth.region) 
+                        ? amplifyConfig.Auth.region 
+                        : "eu-west-1";
+                    
+                    // Determine engine type
+                    var engine = "standard";
+                    if (typeof pollyNeuralVoices !== 'undefined' && typeof pollyNeuralVoicesRegions !== 'undefined') {
+                        if (pollyNeuralVoices.includes(voiceId) && pollyNeuralVoicesRegions.includes(awsRegion)) {
+                            engine = "neural";
+                        }
+                    }
+                    if (typeof pollyGenerativeVoices !== 'undefined' && typeof pollyGenerativeRegions !== 'undefined') {
+                        if (pollyGenerativeVoices.includes(voiceId) && pollyGenerativeRegions.includes(awsRegion)) {
+                            engine = "generative";
+                        }
+                    }
+                    
+                    // Create speech parameters
+                    var speechParams = {
+                        OutputFormat: "mp3",
+                        Text: text,
+                        TextType: "text",
+                        VoiceId: voiceId,
+                        Engine: engine
+                    };
+                    
+                    console.log("Synthesizing speech with params:", speechParams);
+                    console.log("Region:", awsRegion);
+                    
+                    // Create Polly service object
+                    var polly = new AWS.Polly({
+                        apiVersion: "2016-06-10",
+                        region: awsRegion
+                    });
+                    
+                    // Create presigner
+                    var signer = new AWS.Polly.Presigner(speechParams, polly);
+                    
+                    // Get presigned URL
+                    signer.getSynthesizeSpeechUrl(speechParams, function (error, url) {
+                        if (error) {
+                            console.error("Polly error:", error);
+                            $("#error-message").text("Error: " + (error.message || error.code || "Failed to synthesize speech. Please check your AWS credentials.")).show();
+                            $("#status-message").text("");
+                            button.prop('disabled', false).html('<i class="fas fa-play"></i> Say it for me');
+                        } else {
+                            console.log("Audio URL generated successfully:", url.substring(0, 50) + "...");
+                            var audioElement = document.getElementById("audioPlayback");
+                            var audioSource = document.getElementById("audioSource");
+                            
+                            if (audioSource && audioElement) {
+                                audioSource.src = url;
+                                audioElement.load();
+                                $("#audioPlayback").show();
+                                $("#status-message").text("Ready to play!");
+                                
+                                audioElement.oncanplay = function() {
+                                    $("#status-message").text("Audio ready!");
+                                    button.prop('disabled', false).html('<i class="fas fa-play"></i> Say it for me');
+                                };
+                                
+                                audioElement.onerror = function() {
+                                    $("#error-message").text("Error loading audio file. Please check your AWS credentials and try again.").show();
+                                    $("#status-message").text("");
+                                    button.prop('disabled', false).html('<i class="fas fa-play"></i> Say it for me');
+                                };
+                            } else {
+                                $("#error-message").text("Audio element not found.").show();
+                                $("#status-message").text("");
+                                button.prop('disabled', false).html('<i class="fas fa-play"></i> Say it for me');
+                            }
+                        }
+                    });
+                }
+            }, 500); // Wait 500ms for main.js to load
+        });
+        </script>
+    </body>
+</html>

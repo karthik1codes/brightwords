@@ -1,0 +1,576 @@
+@font-face {
+    font-family: 'OpenDyslexic';
+    src: url('https://cdn.jsdelivr.net/gh/antijingoist/open-dyslexic/otf/OpenDyslexic-Regular.otf') format('opentype');
+    font-display: swap;
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+    white-space: nowrap;
+}
+
+.skip-link {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    padding: 10px 16px;
+    background: #111827;
+    color: #ffffff;
+    border-radius: 6px;
+    transform: translateY(-150%);
+    transition: transform 0.2s ease, opacity 0.2s ease;
+    z-index: 1000;
+    text-decoration: none;
+    font-weight: 700;
+}
+
+.skip-link:focus {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+body.accessibility-mode {
+    font-size: 1.5rem;
+    font-family: 'OpenDyslexic', 'Atkinson Hyperlegible', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+    background: #0f172a;
+    color: #f8fafc;
+    letter-spacing: 0.02em;
+}
+
+body.accessibility-mode .main-container,
+body.accessibility-mode .hero-section,
+body.accessibility-mode .modules-section,
+body.accessibility-mode .accessibility-section,
+body.accessibility-mode .learning-area {
+    background: #131c34;
+    box-shadow: none;
+}
+
+body.accessibility-mode .hero-section {
+    overflow: hidden;
+}
+
+body.accessibility-mode .hero-visual {
+    overflow: hidden;
+    width: 100%;
+    max-width: 100%;
+}
+
+body.accessibility-mode .nav-header,
+body.accessibility-mode .stat-card,
+body.accessibility-mode .module-card,
+body.accessibility-mode .support-card,
+body.accessibility-mode .game-container,
+body.accessibility-mode .settings-panel {
+    background: #111827;
+    border: 2px solid #f3f4f6;
+    box-shadow: none;
+    color: #f8fafc;
+}
+
+body.accessibility-mode .settings-title,
+body.accessibility-mode .setting-label,
+body.accessibility-mode .setting-label span {
+    color: #f8fafc;
+}
+
+body.accessibility-mode .user-profile-card {
+    background: #1f2937;
+    border-color: #f3f4f6;
+}
+
+body.accessibility-mode .user-profile-name,
+body.accessibility-mode .user-profile-email {
+    color: #f8fafc;
+}
+
+body.accessibility-mode .settings-panel select,
+body.accessibility-mode .settings-panel option {
+    background: #1f2937;
+    color: #f8fafc;
+    border-color: #f3f4f6;
+}
+
+body.accessibility-mode .close-btn {
+    background: #374151;
+    color: #f8fafc;
+}
+
+body.accessibility-mode .close-btn:hover {
+    background: #4b5563;
+    color: #f8fafc;
+}
+
+body.accessibility-mode .video-selection-modal {
+    background: #111827 !important;
+    border: 2px solid #f3f4f6 !important;
+}
+
+body.accessibility-mode .video-selection-modal h2,
+body.accessibility-mode .video-selection-modal p {
+    color: #f8fafc !important;
+}
+
+body.accessibility-mode .video-selection-modal .close-video-modal {
+    background: #374151 !important;
+    color: #f8fafc !important;
+}
+
+body.accessibility-mode .video-selection-modal .close-video-modal:hover {
+    background: #4b5563 !important;
+}
+
+body.accessibility-mode .nav-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 20px;
+    padding: 18px 28px;
+    overflow: hidden;
+    min-width: 0;
+}
+
+body.accessibility-mode .nav-menu {
+    flex: 1 1 auto;
+    justify-content: center;
+    margin: 0 20px;
+    gap: 28px;
+    min-width: 0;
+}
+
+body.accessibility-mode .user-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: nowrap;
+    flex-shrink: 1;
+    min-width: 0;
+    max-width: 100%;
+}
+
+body.accessibility-mode .user-auth {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+body.accessibility-mode .user-greeting {
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 120px;
+    color: #f8fafc;
+}
+
+body.accessibility-mode .signout-btn {
+    padding: 6px 12px;
+    font-size: 12px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    color: #ffffff;
+    background: #ef4444;
+}
+
+body.accessibility-mode .signout-btn:hover {
+    background: #dc2626;
+    color: #ffffff;
+}
+body.accessibility-mode .support-card.active,
+body.accessibility-mode .module-card:hover {
+    border-color: #f97316;
+    background: #1f2937;
+}
+
+body.accessibility-mode .btn-primary,
+body.accessibility-mode .play-btn,
+body.accessibility-mode .accessibility-toggle {
+    background: linear-gradient(135deg, #facc15, #f97316);
+    color: #111;
+    border: 2px solid #facc15;
+}
+
+body.accessibility-mode .btn-secondary {
+    border-color: #facc15;
+    color: #fcd34d;
+    background: transparent;
+}
+
+body.accessibility-mode a,
+body.accessibility-mode .nav-item {
+    color: #93c5fd;
+    text-decoration: underline;
+}
+
+body.accessibility-mode :focus-visible {
+    outline: 4px solid #facc15;
+    outline-offset: 4px;
+}
+
+body.accessibility-mode .hero-title,
+body.accessibility-mode .hero-description {
+    color: #fefce8;
+}
+
+body.accessibility-mode .hero-highlights li {
+    background: #facc15;
+    color: #0f172a;
+}
+
+body.accessibility-mode .support-message {
+    color: #f8fafc;
+    background: #1f2937;
+}
+
+body.accessibility-mode .stat-label {
+    color: #e5e7eb;
+}
+
+body.accessibility-mode .support-info h3,
+body.accessibility-mode .support-info p {
+    color: #f8fafc;
+}
+
+body.accessibility-mode .section-title,
+body.accessibility-mode .section-subtitle {
+    color: #f8fafc;
+}
+
+body.accessibility-mode .support-feature-panel,
+body.accessibility-mode .support-feature-panel h3,
+body.accessibility-mode .support-feature-panel p {
+    background: #111827;
+    color: #f8fafc;
+    border-color: #f97316;
+}
+
+body.accessibility-mode .support-feature-panel {
+    background: #0f172a;
+    border-color: #f97316;
+}
+
+body.accessibility-mode .support-widget {
+    background: #1e1b4b;
+    border-color: rgba(250, 204, 21, 0.3);
+}
+
+body.accessibility-mode .support-widget h3,
+body.accessibility-mode .support-widget p,
+body.accessibility-mode .support-widget label {
+    color: #fefce8;
+}
+
+body.accessibility-mode .chat-log {
+    background: #0f172a;
+    color: #e0f2fe;
+    border-color: rgba(148, 163, 184, 0.4);
+}
+
+body.accessibility-mode .chat-message.user {
+    background: #1d4ed8;
+    color: #f8fafc;
+}
+
+body.accessibility-mode .chat-message.coach {
+    background: #0ea5e9;
+    color: #0f172a;
+}
+
+body.accessibility-mode .support-feature-panel {
+    background: #1b2342;
+    border-color: #facc15;
+}
+
+body.accessibility-mode .feature-title {
+    color: #fefce8;
+}
+
+body.accessibility-mode .feature-description,
+body.accessibility-mode .feature-result {
+    color: #f8fafc;
+}
+
+body.accessibility-mode .feature-controls input,
+body.accessibility-mode .feature-controls textarea {
+    background: #0f172a;
+    color: #f8fafc;
+    border-color: #475569;
+}
+
+.accessibility-toggle {
+    padding: 8px 14px;
+    border-radius: 20px;
+    border: 2px solid #8b5cf6;
+    background: #ffffff;
+    color: #111827;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 13px;
+    white-space: nowrap;
+    flex-shrink: 1;
+}
+
+.accessibility-toggle:focus-visible {
+    outline: 4px solid #2563eb;
+    outline-offset: 4px;
+}
+
+.audit-results {
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    max-width: 320px;
+    background: #1f2937;
+    color: #f9fafb;
+    padding: 16px;
+    border-radius: 14px;
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+    font-size: 0.9rem;
+    z-index: 900;
+}
+
+.audit-results h4 {
+    margin-bottom: 8px;
+}
+
+body.accessibility-mode {
+    font-size: 1.5em;
+    font-family: 'OpenDyslexic', 'Nunito', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #000000;
+    color: #ffffff;
+}
+
+body.accessibility-mode .nav-header,
+body.accessibility-mode .hero-section,
+body.accessibility-mode .accessibility-section,
+body.accessibility-mode .stats-container,
+body.accessibility-mode .modules-section,
+body.accessibility-mode .learning-area {
+    background: #0f172a;
+    color: #ffffff;
+    border: 3px solid #fbbf24;
+}
+
+body.accessibility-mode .btn-primary,
+body.accessibility-mode .play-btn,
+body.accessibility-mode .control-btn {
+    background: #ffeb3b;
+    color: #111827;
+    border-color: #ffeb3b;
+}
+
+body.accessibility-mode .btn-secondary {
+    background: transparent;
+    color: #ffeb3b;
+    border-color: #ffeb3b;
+}
+
+body.accessibility-mode .support-card,
+body.accessibility-mode .module-card,
+body.accessibility-mode .stat-card {
+    background: #1f2937;
+    color: #ffffff;
+    border: 2px solid #fbbf24;
+}
+
+body.accessibility-mode a,
+body.accessibility-mode .nav-item {
+    color: #93c5fd;
+}
+
+body.accessibility-mode :focus-visible {
+    outline: 4px solid #ffeb3b;
+    outline-offset: 6px;
+}
+
+body.accessibility-mode .hero-title span {
+    background: none;
+    color: #ffeb3b;
+    -webkit-text-fill-color: #ffeb3b;
+}
+
+body.accessibility-mode .learning-area {
+    box-shadow: none;
+}
+
+body.accessibility-mode .accessibility-toggle {
+    border: 2px solid #ffeb3b;
+    background: #111827;
+    color: #ffeb3b;
+}
+
+body.accessibility-mode .accessibility-toggle[aria-pressed="true"] {
+    background: #ffeb3b;
+    color: #111827;
+}
+
+body.accessibility-mode .chat-log {
+    background: #0f172a;
+    border-color: rgba(148, 163, 184, 0.4);
+}
+
+body.accessibility-mode .chat-row.user .chat-bubble {
+    background: #1d4ed8;
+    color: #f8fafc;
+    border: none;
+}
+
+body.accessibility-mode .chat-row.coach .chat-bubble {
+    background: #0ea5e9;
+    color: #0f172a;
+    border: none;
+}
+
+body.accessibility-mode .chat-typing {
+    color: #c7d2fe;
+}
+
+body.accessibility-mode .chat-hint {
+    color: #cbd5f5;
+}
+
+body.accessibility-mode .site-footer {
+    background: #131c34;
+    color: #f8fafc;
+    border-top-color: #f3f4f6;
+}
+
+body.accessibility-mode .site-footer p {
+    color: #f8fafc;
+}
+
+body.accessibility-mode .community-modal {
+    background: #111827 !important;
+    border: 2px solid #f3f4f6 !important;
+}
+
+body.accessibility-mode .community-modal h2,
+body.accessibility-mode .community-modal h3,
+body.accessibility-mode .community-modal p,
+body.accessibility-mode .community-modal li {
+    color: #f8fafc !important;
+}
+
+body.accessibility-mode .community-modal .close-community-modal {
+    background: #374151 !important;
+    color: #f8fafc !important;
+}
+
+body.accessibility-mode .community-modal .close-community-modal:hover {
+    background: #4b5563 !important;
+}
+
+/* Feedback Section - Accessibility Mode */
+body.accessibility-mode .feedback-section {
+    background: #1F2937;
+    color: #FFFFFF;
+}
+
+body.accessibility-mode .feedback-card {
+    background: #374151;
+    border: 3px solid #FFFFFF;
+    color: #FFFFFF;
+}
+
+body.accessibility-mode .feedback-card-header {
+    background: linear-gradient(135deg, #FFFFFF, #E5E7EB);
+    color: #1F2937;
+}
+
+body.accessibility-mode .feedback-card-title {
+    color: #1F2937;
+}
+
+body.accessibility-mode .feedback-card-description {
+    color: #E5E7EB;
+}
+
+body.accessibility-mode .feedback-btn {
+    background: #FFFFFF;
+    color: #1F2937;
+    border: 3px solid #FFFFFF;
+    font-weight: 700;
+}
+
+body.accessibility-mode .feedback-btn:hover {
+    background: #E5E7EB;
+    border-color: #FFFFFF;
+}
+
+body.accessibility-mode .feedback-btn:focus {
+    outline: 3px solid #FFFFFF;
+    outline-offset: 3px;
+}
+
+/* WCAG 2.2 refinements */
+body.accessibility-mode {
+    line-height: 1.6;
+}
+
+/* Ensure high-contrast primary/secondary actions */
+body.accessibility-mode .btn-primary,
+body.accessibility-mode .play-btn,
+body.accessibility-mode .control-btn {
+    background: #facc15;
+    color: #111827;
+    border: 3px solid #111827;
+    box-shadow: none;
+}
+
+body.accessibility-mode .btn-secondary {
+    background: #ffffff;
+    color: #111827;
+    border: 3px solid #111827;
+    box-shadow: none;
+}
+
+/* Always underline interactive text and improve focus */
+body.accessibility-mode a,
+body.accessibility-mode .nav-item {
+    text-decoration: underline;
+    color: #f8fafc;
+}
+
+/* Remove underlines specifically in the header nav to avoid visual clutter */
+body.accessibility-mode .nav-header a,
+body.accessibility-mode .nav-header .nav-item {
+    text-decoration: none;
+}
+
+body.accessibility-mode :focus-visible {
+    outline: 3px solid #facc15 !important;
+    outline-offset: 3px !important;
+}
+/* Input and toggle contrast */
+body.accessibility-mode input,
+body.accessibility-mode select,
+body.accessibility-mode textarea,
+body.accessibility-mode button {
+    border-color: #111827 !important;
+}
+
+/* Card backgrounds for better contrast */
+body.accessibility-mode .stat-card,
+body.accessibility-mode .module-card,
+body.accessibility-mode .support-card,
+body.accessibility-mode .game-container {
+    background: #0b1224;
+    border: 2px solid #f8fafc;
+}
+
+/* Skip link visibility on focus */
+body.accessibility-mode #skipLink:focus {
+    transform: translateY(0);
+    opacity: 1;
+}

@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300">
+  <defs>
+    <!-- Soft pastel gradients -->
+    <linearGradient id="pencilGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#F9C449;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#F977B7;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="pathGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#9B5CF6;stop-opacity:0.4" />
+      <stop offset="100%" style="stop-color:#F977B7;stop-opacity:0.4" />
+    </linearGradient>
+    <radialGradient id="traceGlow" cx="50%" cy="50%">
+      <stop offset="0%" style="stop-color:#9B5CF6;stop-opacity:0.6" />
+      <stop offset="100%" style="stop-color:#9B5CF6;stop-opacity:0" />
+    </radialGradient>
+    <radialGradient id="bgOrb" cx="50%" cy="50%">
+      <stop offset="0%" style="stop-color:#6CC8FF;stop-opacity:0.3" />
+      <stop offset="100%" style="stop-color:#6CC8FF;stop-opacity:0" />
+    </radialGradient>
+    <filter id="pencilShadow">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="6"/>
+      <feOffset dx="2" dy="4" result="offsetblur"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.3"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="traceGlowFilter">
+      <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background soft orb -->
+  <circle cx="250" cy="150" r="80" fill="url(#bgOrb)" opacity="0.5"/>
+  
+  <!-- Pencil with soft shadow -->
+  <g filter="url(#pencilShadow)" transform="rotate(25 154 130)">
+    <rect x="148" y="75" width="12" height="105" rx="6" fill="url(#pencilGrad)" opacity="0.95"/>
+    <rect x="148" y="75" width="12" height="105" rx="6" fill="none" stroke="rgba(155, 92, 246, 0.25)" stroke-width="2"/>
+    
+    <!-- Pencil tip -->
+    <polygon points="154,75 160,75 162,88 152,88" fill="rgba(31, 41, 55, 0.8)"/>
+    
+    <!-- Pencil eraser -->
+    <ellipse cx="154" cy="180" rx="6" ry="8" fill="#6CC8FF" opacity="0.9"/>
+  </g>
+  
+  <!-- Tracing path (letter 'A') with gradient -->
+  <path id="tracePath" d="M 100 200 L 120 160 L 140 200 M 110 180 L 130 180" 
+        fill="none" stroke="url(#pathGrad)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="6,6" opacity="0.7"/>
+  
+  <!-- Animated tracing line with glow -->
+  <path d="M 100 200 L 120 160" 
+        fill="none" stroke="#9B5CF6" stroke-width="7" stroke-linecap="round" filter="url(#traceGlowFilter)" opacity="0.9">
+    <animate attributeName="stroke-dasharray" values="0,200;200,0" dur="3s" repeatCount="indefinite"/>
+  </path>
+  <path d="M 120 160 L 140 200" 
+        fill="none" stroke="#F977B7" stroke-width="7" stroke-linecap="round" filter="url(#traceGlowFilter)" opacity="0.9">
+    <animate attributeName="stroke-dasharray" values="0,200;200,0" dur="3s" begin="1.5s" repeatCount="indefinite"/>
+  </path>
+  <path d="M 110 180 L 130 180" 
+        fill="none" stroke="#6CC8FF" stroke-width="7" stroke-linecap="round" filter="url(#traceGlowFilter)" opacity="0.9">
+    <animate attributeName="stroke-dasharray" values="0,200;200,0" dur="2s" begin="3s" repeatCount="indefinite"/>
+  </path>
+  
+  <!-- Guided dots with glow -->
+  <circle cx="100" cy="200" r="6" fill="#6CC8FF" opacity="0.8" filter="url(#traceGlowFilter)">
+    <animate attributeName="opacity" values="0.8;1;0.8" dur="1.8s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="120" cy="160" r="6" fill="#9B5CF6" opacity="0.8" filter="url(#traceGlowFilter)">
+    <animate attributeName="opacity" values="0.8;1;0.8" dur="1.8s" begin="0.6s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="140" cy="200" r="6" fill="#F977B7" opacity="0.8" filter="url(#traceGlowFilter)">
+    <animate attributeName="opacity" values="0.8;1;0.8" dur="1.8s" begin="1.2s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="110" cy="180" r="5" fill="#6CC8FF" opacity="0.8" filter="url(#traceGlowFilter)">
+    <animate attributeName="opacity" values="0.8;1;0.8" dur="1.8s" begin="1.8s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="130" cy="180" r="5" fill="#F9C449" opacity="0.8" filter="url(#traceGlowFilter)">
+    <animate attributeName="opacity" values="0.8;1;0.8" dur="1.8s" begin="2.4s" repeatCount="indefinite"/>
+  </circle>
+  
+  <!-- Spacing guides (soft lines) -->
+  <line x1="80" y1="220" x2="160" y2="220" stroke="#DBEAFE" stroke-width="2.5" stroke-dasharray="4,4" opacity="0.6"/>
+  <line x1="80" y1="240" x2="160" y2="240" stroke="#DBEAFE" stroke-width="2.5" stroke-dasharray="4,4" opacity="0.6"/>
+  
+  <!-- Motor planning indicator (pulsing orb) -->
+  <circle cx="250" cy="150" r="32" fill="none" stroke="#F9C449" stroke-width="4" opacity="0.6" filter="url(#traceGlowFilter)">
+    <animate attributeName="r" values="32;42;32" dur="2.5s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.6;0.9;0.6" dur="2.5s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="250" cy="150" r="22" fill="#F9C449" opacity="0.4" filter="url(#traceGlowFilter)">
+    <animate attributeName="r" values="22;27;22" dur="2.5s" repeatCount="indefinite"/>
+  </circle>
+</svg>

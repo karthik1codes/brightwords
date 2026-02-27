@@ -1,0 +1,60 @@
+/* OTP Input Styles - BrightWords Theme */
+
+.otp-input-container {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  align-items: center;
+  margin: 24px 0;
+}
+
+.otp-input-box {
+  width: 64px;
+  height: 64px;
+  border: 2px solid #E5E7EB;
+  border-radius: 16px;
+  text-align: center;
+  font-size: 28px;
+  font-weight: 700;
+  font-family: 'Nunito', sans-serif;
+  color: #1F2937;
+  background: #FFFFFF;
+  transition: all 0.2s ease;
+  outline: none;
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.1);
+}
+
+.otp-input-box:focus,
+.otp-input-box.focused {
+  border-color: #8B5CF6;
+  box-shadow: 
+    0 0 0 4px rgba(139, 92, 246, 0.1),
+    0 4px 12px rgba(139, 92, 246, 0.2);
+  transform: scale(1.05);
+}
+
+.otp-input-box:disabled {
+  background: #F3F4F6;
+  color: #9CA3AF;
+  cursor: not-allowed;
+  border-color: #D1D5DB;
+}
+
+.otp-input-box::placeholder {
+  color: #D1D5DB;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .otp-input-container {
+    gap: 8px;
+  }
+
+  .otp-input-box {
+    width: 56px;
+    height: 56px;
+    font-size: 24px;
+    border-radius: 12px;
+  }
+}
+

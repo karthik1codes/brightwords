@@ -1,0 +1,154 @@
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Nunito', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* Site Footer Styles */
+.site-footer {
+  text-align: center;
+  padding: 30px 20px 40px;
+  font-size: 16px;
+  color: #1F2937;
+  background: rgba(255, 255, 255, 0.9);
+  border-top: 1px solid rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+}
+
+.site-footer p {
+  margin: 0;
+  text-align: center;
+}
+
+/* For Any Queries Section */
+.queries-section {
+  margin-bottom: 24px !important;
+  padding-bottom: 24px !important;
+  border-bottom: 1px solid rgba(0,0,0,0.08) !important;
+  width: 100% !important;
+  max-width: 600px !important;
+  display: block !important;
+}
+
+.queries-title {
+  font-family: 'Fredoka', cursive !important;
+  font-size: 20px !important;
+  font-weight: 600 !important;
+  color: #8B5CF6 !important;
+  margin-bottom: 16px !important;
+  text-align: center !important;
+  display: block !important;
+}
+
+.social-icons {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 24px !important;
+  flex-wrap: wrap !important;
+  width: 100% !important;
+}
+
+.social-icon {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 48px !important;
+  height: 48px !important;
+  border-radius: 50% !important;
+  background: white !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+  transition: all 0.3s ease !important;
+  text-decoration: none !important;
+  cursor: pointer !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.social-icon:hover {
+  transform: translateY(-4px) scale(1.1);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+}
+
+.social-icon:focus {
+  outline: 3px solid rgba(139, 92, 246, 0.3);
+  outline-offset: 2px;
+}
+
+.social-icon svg {
+  width: 32px;
+  height: 32px;
+  transition: transform 0.3s ease;
+}
+
+.social-icon:hover svg {
+  transform: scale(1.1);
+}
+
+.gmail-icon:hover {
+  background: #EA4335;
+}
+
+.gmail-icon:hover svg path {
+  fill: white;
+}
+
+.instagram-icon:hover {
+  background: #E4405F;
+}
+
+.instagram-icon:hover svg path {
+  fill: white;
+}
+
+.facebook-icon:hover {
+  background: #1877F2;
+}
+
+.facebook-icon:hover svg path {
+  fill: white;
+}
+
+@media (max-width: 768px) {
+  .queries-section {
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+  }
+  
+  .queries-title {
+    font-size: 18px;
+    margin-bottom: 14px;
+  }
+  
+  .social-icons {
+    gap: 20px;
+  }
+  
+  .social-icon {
+    width: 44px;
+    height: 44px;
+  }
+  
+  .social-icon svg {
+    width: 28px;
+    height: 28px;
+  }
+}
+

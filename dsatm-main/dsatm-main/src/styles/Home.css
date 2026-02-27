@@ -1,0 +1,259 @@
+/* Home page styles */
+/* Import base styles from globals.css */
+
+.home-page {
+  min-height: 100vh;
+  width: 100%;
+}
+
+.main-container {
+  position: relative;
+  z-index: 1;
+}
+
+/* CTA buttons (Start Learning / Watch Demo) */
+.home-page .cta-buttons {
+  display: flex;
+  gap: 16px;
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+
+.home-page .cta-buttons .btn-primary,
+.home-page .cta-buttons .btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 16px;
+  padding: 14px 20px;
+  border: 2px solid transparent;
+  transition: transform 0.15s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  box-shadow: 0 14px 28px rgba(139, 92, 246, 0.25);
+}
+
+.home-page .cta-buttons .btn-primary {
+  background: linear-gradient(135deg, #7c3aed, #f43f5e);
+  color: #ffffff;
+}
+
+.home-page .cta-buttons .btn-primary:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+  box-shadow: 0 16px 32px rgba(244, 63, 94, 0.3);
+}
+
+.home-page .cta-buttons .btn-primary:active {
+  transform: translateY(0);
+  filter: brightness(0.98);
+}
+
+.home-page .cta-buttons .btn-secondary {
+  background: #f4f2ff;
+  color: #6c4af2;
+  border-color: #b8a6ff;
+  box-shadow: 0 10px 24px rgba(108, 74, 242, 0.18);
+}
+
+.home-page .cta-buttons .btn-secondary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(108, 74, 242, 0.22);
+}
+
+.home-page .cta-buttons .btn-secondary:active {
+  transform: translateY(0);
+}
+
+.home-page .cta-buttons .btn-primary svg,
+.home-page .cta-buttons .btn-secondary svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Demo modal */
+.home-page .demo-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  padding: 16px;
+}
+
+.home-page .demo-modal {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 24px 22px;
+  max-width: 420px;
+  width: 100%;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(139, 92, 246, 0.15);
+  text-align: center;
+}
+
+.home-page .demo-modal h3 {
+  margin: 0 0 8px 0;
+  font-family: 'Fredoka', cursive;
+  font-size: 22px;
+  color: #1f2937;
+}
+
+.home-page .demo-modal p {
+  margin: 0 0 16px 0;
+  color: #4b5563;
+}
+
+.home-page .demo-modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.home-page .demo-modal .btn-primary,
+.home-page .demo-modal .btn-secondary {
+  min-width: 140px;
+}
+
+.home-page .community-icon {
+  width: 20px;
+  height: 20px;
+}
+
+/* Hero section styles will be imported from main styles.css */
+/* This file serves as a placeholder for modular CSS organization */
+
+/* Site Footer */
+.home-page .site-footer {
+  text-align: center;
+  padding: 30px 20px 40px;
+  font-size: 16px;
+  color: #1F2937;
+  background: rgba(255, 255, 255, 0.9);
+  border-top: 1px solid rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+}
+
+.home-page .site-footer p {
+  margin: 0;
+  text-align: center;
+}
+
+/* For Any Queries Section */
+.home-page .queries-section {
+  margin-bottom: 24px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+  width: 100%;
+  max-width: 600px;
+}
+
+.home-page .queries-title {
+  font-family: 'Fredoka', cursive;
+  font-size: 20px;
+  font-weight: 600;
+  color: #8B5CF6;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.home-page .social-icons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.home-page .social-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.home-page .social-icon:hover {
+  transform: translateY(-4px) scale(1.1);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+}
+
+.home-page .social-icon:focus {
+  outline: 3px solid rgba(139, 92, 246, 0.3);
+  outline-offset: 2px;
+}
+
+.home-page .social-icon svg {
+  width: 32px;
+  height: 32px;
+  transition: transform 0.3s ease;
+}
+
+.home-page .social-icon:hover svg {
+  transform: scale(1.1);
+}
+
+.home-page .gmail-icon:hover {
+  background: #EA4335;
+}
+
+.home-page .gmail-icon:hover svg path {
+  fill: white;
+}
+
+.home-page .instagram-icon:hover {
+  background: #E4405F;
+}
+
+.home-page .instagram-icon:hover svg path {
+  fill: white;
+}
+
+.home-page .facebook-icon:hover {
+  background: #1877F2;
+}
+
+.home-page .facebook-icon:hover svg path {
+  fill: white;
+}
+
+@media (max-width: 768px) {
+  .home-page .queries-section {
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+  }
+  
+  .home-page .queries-title {
+    font-size: 18px;
+    margin-bottom: 14px;
+  }
+  
+  .home-page .social-icons {
+    gap: 20px;
+  }
+  
+  .home-page .social-icon {
+    width: 44px;
+    height: 44px;
+  }
+  
+  .home-page .social-icon svg {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+

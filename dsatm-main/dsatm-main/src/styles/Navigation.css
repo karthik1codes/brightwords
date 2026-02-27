@@ -1,0 +1,60 @@
+/* Navigation styles will be imported from main styles.css */
+/* This file serves as a placeholder for modular CSS organization */
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  width: 100%;
+}
+
+/* Ensure proper alignment and spacing */
+.nav-header {
+  width: 100%;
+  max-width: 100%;
+}
+
+.nav-menu {
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.nav-item {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Logo tweaks */
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: #7c3aed;
+  text-decoration: none;
+  font-family: 'Fredoka', cursive;
+  font-weight: 700;
+  font-size: 22px;
+}
+
+.logo:hover {
+  text-decoration: none;
+}
+
+.logo:focus-visible {
+  outline: 3px solid rgba(124, 58, 237, 0.4);
+  outline-offset: 2px;
+}
+
+/* Remove underline on nav links in default mode */
+.nav-header a,
+.nav-header a:visited,
+.nav-header a:hover,
+.nav-header a:focus {
+  text-decoration: none;
+}
+
+

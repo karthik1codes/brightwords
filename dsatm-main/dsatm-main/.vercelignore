@@ -1,0 +1,13 @@
+node_modules
+dist
+.git
+.vscode
+*.log
+*.md
+backend
+aws-augmentability-main/node_modules
+signtranslator/node_modules
+.env
+.env.local
+.DS_Store
+

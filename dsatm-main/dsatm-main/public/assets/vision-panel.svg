@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300">
+  <defs>
+    <!-- Soft pastel gradients -->
+    <linearGradient id="tabletGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#9B5CF6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#6CC8FF;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="screenGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FEF3C7;stop-opacity:0.95" />
+      <stop offset="100%" style="stop-color:#FDE68A;stop-opacity:0.95" />
+    </linearGradient>
+    <radialGradient id="glowOrb" cx="50%" cy="50%">
+      <stop offset="0%" style="stop-color:#9B5CF6;stop-opacity:0.5" />
+      <stop offset="100%" style="stop-color:#9B5CF6;stop-opacity:0" />
+    </radialGradient>
+    <radialGradient id="bgBlob" cx="50%" cy="50%">
+      <stop offset="0%" style="stop-color:#F977B7;stop-opacity:0.3" />
+      <stop offset="100%" style="stop-color:#F977B7;stop-opacity:0" />
+    </radialGradient>
+    <filter id="deviceShadow">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="10"/>
+      <feOffset dx="0" dy="6" result="offsetblur"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.35"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="pulseGlow">
+      <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background soft blob -->
+  <ellipse cx="200" cy="150" rx="120" ry="100" fill="url(#bgBlob)" opacity="0.5"/>
+  
+  <!-- Tablet device with soft shadow -->
+  <g filter="url(#deviceShadow)">
+    <!-- Device frame -->
+    <rect x="115" y="50" width="170" height="210" rx="22" fill="url(#tabletGrad)" opacity="0.95"/>
+    <rect x="115" y="50" width="170" height="210" rx="22" fill="none" stroke="rgba(155, 92, 246, 0.3)" stroke-width="2.5"/>
+    
+    <!-- Inner glow -->
+    <rect x="125" y="70" width="150" height="170" rx="14" fill="url(#glowOrb)" opacity="0.4"/>
+    
+    <!-- Screen (cream background) -->
+    <rect x="125" y="70" width="150" height="170" rx="14" fill="url(#screenGrad)"/>
+    <rect x="125" y="70" width="150" height="170" rx="14" fill="none" stroke="rgba(155, 92, 246, 0.2)" stroke-width="1.5"/>
+  </g>
+  
+  <!-- High contrast content (soft pastels) -->
+  <rect x="140" y="95" width="120" height="14" rx="4" fill="#9B5CF6" opacity="0.85"/>
+  <rect x="140" y="120" width="100" height="14" rx="4" fill="#F977B7" opacity="0.85"/>
+  <rect x="140" y="145" width="110" height="14" rx="4" fill="#6CC8FF" opacity="0.85"/>
+  <rect x="140" y="170" width="90" height="14" rx="4" fill="#F9C449" opacity="0.85"/>
+  
+  <!-- Large text indicators (pulsing dots) -->
+  <circle cx="152" cy="102" r="5" fill="#6CC8FF" opacity="0.9" filter="url(#pulseGlow)">
+    <animate attributeName="opacity" values="0.9;0.5;0.9" dur="2.5s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="152" cy="127" r="5" fill="#9B5CF6" opacity="0.9" filter="url(#pulseGlow)">
+    <animate attributeName="opacity" values="0.9;0.5;0.9" dur="2.5s" begin="0.5s" repeatCount="indefinite"/>
+  </circle>
+  
+  <!-- Audio wave indicator (soft curves) -->
+  <path d="M 200 215 L 210 205 L 220 215 L 230 205 L 240 215" 
+        fill="none" stroke="#6CC8FF" stroke-width="4" stroke-linecap="round" opacity="0.8" filter="url(#pulseGlow)">
+    <animate attributeName="d" values="M 200 215 L 210 205 L 220 215 L 230 205 L 240 215;M 200 215 L 210 210 L 220 215 L 230 210 L 240 215;M 200 215 L 210 205 L 220 215 L 230 205 L 240 215" dur="2s" repeatCount="indefinite"/>
+  </path>
+  
+  <!-- Tactile keyboard (soft rounded keys) -->
+  <rect x="148" y="195" width="22" height="22" rx="5" fill="#F9C449" opacity="0.8"/>
+  <rect x="175" y="195" width="22" height="22" rx="5" fill="#F977B7" opacity="0.8"/>
+  <rect x="202" y="195" width="22" height="22" rx="5" fill="#6CC8FF" opacity="0.8"/>
+  <rect x="229" y="195" width="22" height="22" rx="5" fill="#9B5CF6" opacity="0.8"/>
+  
+  <!-- Child silhouette (soft rounded) -->
+  <circle cx="200" cy="40" r="22" fill="#F977B7" opacity="0.7" filter="url(#pulseGlow)"/>
+  <ellipse cx="200" cy="75" rx="28" ry="38" fill="#F977B7" opacity="0.7" filter="url(#pulseGlow)"/>
+  
+  <!-- Accessibility indicator orbs -->
+  <circle cx="95" cy="150" r="16" fill="#6CC8FF" opacity="0.6" filter="url(#pulseGlow)">
+    <animate attributeName="r" values="16;20;16" dur="3s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="305" cy="150" r="16" fill="#9B5CF6" opacity="0.6" filter="url(#pulseGlow)">
+    <animate attributeName="r" values="16;20;16" dur="3s" begin="1.5s" repeatCount="indefinite"/>
+  </circle>
+</svg>

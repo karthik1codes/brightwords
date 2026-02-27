@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300">
+  <defs>
+    <!-- Soft pastel gradients -->
+    <linearGradient id="puzzleGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#9B5CF6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#F977B7;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="puzzleGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6CC8FF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#9B5CF6;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="puzzleGrad3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#F9C449;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#F977B7;stop-opacity:1" />
+    </linearGradient>
+    <radialGradient id="breathGrad" cx="50%" cy="50%">
+      <stop offset="0%" style="stop-color:#6CC8FF;stop-opacity:0.5" />
+      <stop offset="70%" style="stop-color:#9B5CF6;stop-opacity:0.3" />
+      <stop offset="100%" style="stop-color:#F977B7;stop-opacity:0" />
+    </radialGradient>
+    <radialGradient id="bgBlob1" cx="50%" cy="50%">
+      <stop offset="0%" style="stop-color:#F9C449;stop-opacity:0.35" />
+      <stop offset="100%" style="stop-color:#F9C449;stop-opacity:0" />
+    </radialGradient>
+    <radialGradient id="bgBlob2" cx="50%" cy="50%">
+      <stop offset="0%" style="stop-color:#F977B7;stop-opacity:0.3" />
+      <stop offset="100%" style="stop-color:#F977B7;stop-opacity:0" />
+    </radialGradient>
+    <filter id="puzzleShadow">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="5"/>
+      <feOffset dx="0" dy="3" result="offsetblur"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.3"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="puzzleGlow">
+      <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background soft blobs -->
+  <ellipse cx="60" cy="80" rx="50" ry="45" fill="url(#bgBlob1)" opacity="0.6"/>
+  <ellipse cx="340" cy="220" rx="55" ry="50" fill="url(#bgBlob2)" opacity="0.5"/>
+  
+  <!-- Puzzle piece 1 (rounded, soft) -->
+  <g filter="url(#puzzleShadow)">
+    <path d="M 100 100 L 140 100 L 140 80 L 160 80 L 160 100 L 200 100 L 200 140 L 180 140 L 180 160 L 160 160 L 160 140 L 120 140 L 120 160 L 100 160 Z" 
+          fill="url(#puzzleGrad1)" opacity="0.95">
+      <animate attributeName="opacity" values="0.95;1;0.95" dur="3.5s" repeatCount="indefinite"/>
+    </path>
+    <path d="M 100 100 L 140 100 L 140 80 L 160 80 L 160 100 L 200 100 L 200 140 L 180 140 L 180 160 L 160 160 L 160 140 L 120 140 L 120 160 L 100 160 Z" 
+          fill="none" stroke="rgba(155, 92, 246, 0.25)" stroke-width="2.5"/>
+  </g>
+  
+  <!-- Puzzle piece 2 -->
+  <g filter="url(#puzzleShadow)">
+    <path d="M 220 100 L 260 100 L 260 80 L 280 80 L 280 100 L 300 100 L 300 140 L 280 140 L 280 160 L 260 160 L 260 140 L 240 140 L 240 160 L 220 160 Z" 
+          fill="url(#puzzleGrad2)" opacity="0.95">
+      <animate attributeName="opacity" values="0.95;1;0.95" dur="3.5s" begin="0.6s" repeatCount="indefinite"/>
+    </path>
+    <path d="M 220 100 L 260 100 L 260 80 L 280 80 L 280 100 L 300 100 L 300 140 L 280 140 L 280 160 L 260 160 L 260 140 L 240 140 L 240 160 L 220 160 Z" 
+          fill="none" stroke="rgba(108, 200, 255, 0.25)" stroke-width="2.5"/>
+  </g>
+  
+  <!-- Puzzle piece 3 -->
+  <g filter="url(#puzzleShadow)">
+    <path d="M 120 180 L 160 180 L 160 200 L 180 200 L 180 220 L 160 220 L 160 240 L 140 240 L 140 220 L 120 220 L 120 200 L 100 200 L 100 180 Z" 
+          fill="url(#puzzleGrad3)" opacity="0.95">
+      <animate attributeName="opacity" values="0.95;1;0.95" dur="3.5s" begin="1.2s" repeatCount="indefinite"/>
+    </path>
+    <path d="M 120 180 L 160 180 L 160 200 L 180 200 L 180 220 L 160 220 L 160 240 L 140 240 L 140 220 L 120 220 L 120 200 L 100 200 L 100 180 Z" 
+          fill="none" stroke="rgba(249, 196, 73, 0.25)" stroke-width="2.5"/>
+  </g>
+  
+  <!-- Puzzle piece 4 -->
+  <g filter="url(#puzzleShadow)">
+    <path d="M 240 180 L 280 180 L 280 200 L 300 200 L 300 220 L 280 220 L 280 240 L 260 240 L 260 220 L 240 220 L 240 200 L 220 200 L 220 180 Z" 
+          fill="url(#puzzleGrad1)" opacity="0.95">
+      <animate attributeName="opacity" values="0.95;1;0.95" dur="3.5s" begin="1.8s" repeatCount="indefinite"/>
+    </path>
+    <path d="M 240 180 L 280 180 L 280 200 L 300 200 L 300 220 L 280 220 L 280 240 L 260 240 L 260 220 L 240 220 L 240 200 L 220 200 L 220 180 Z" 
+          fill="none" stroke="rgba(155, 92, 246, 0.25)" stroke-width="2.5"/>
+  </g>
+  
+  <!-- Breathing pattern indicator (soft pulsing circles) -->
+  <circle cx="200" cy="150" r="42" fill="url(#breathGrad)" opacity="0.5" filter="url(#puzzleGlow)">
+    <animate attributeName="r" values="42;52;42" dur="4s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.5;0.7;0.5" dur="4s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="200" cy="150" r="32" fill="url(#breathGrad)" opacity="0.6" filter="url(#puzzleGlow)">
+    <animate attributeName="r" values="32;37;32" dur="4s" begin="1s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.6;0.8;0.6" dur="4s" begin="1s" repeatCount="indefinite"/>
+  </circle>
+  
+  <!-- Predictable pattern lines (soft dashes) -->
+  <line x1="80" y1="120" x2="320" y2="120" stroke="#DBEAFE" stroke-width="2.5" stroke-dasharray="6,6" opacity="0.6">
+    <animate attributeName="opacity" values="0.6;0.9;0.6" dur="2.5s" repeatCount="indefinite"/>
+  </line>
+  <line x1="80" y1="200" x2="320" y2="200" stroke="#DBEAFE" stroke-width="2.5" stroke-dasharray="6,6" opacity="0.6">
+    <animate attributeName="opacity" values="0.6;0.9;0.6" dur="2.5s" begin="1.25s" repeatCount="indefinite"/>
+  </line>
+  
+  <!-- Calming elements (soft orbs) -->
+  <circle cx="60" cy="80" r="16" fill="#FCE7F3" opacity="0.7" filter="url(#puzzleGlow)">
+    <animate attributeName="r" values="16;20;16" dur="3.5s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="340" cy="220" r="18" fill="#D1FAE5" opacity="0.7" filter="url(#puzzleGlow)">
+    <animate attributeName="r" values="18;23;18" dur="3.5s" begin="1.75s" repeatCount="indefinite"/>
+  </circle>
+</svg>

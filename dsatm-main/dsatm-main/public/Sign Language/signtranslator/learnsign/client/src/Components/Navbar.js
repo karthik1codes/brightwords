@@ -77,6 +77,8 @@ function Navbar() {
                     <ul className="navbar-nav ms-auto my-2 my-lg-0">
                         <li className="nav-item"><Link to='/sign-kit/convert' className={"nav-link" + (location.pathname === '/sign-kit/convert' ? ' active' : '')}>Convert</Link></li>
                         <li className="nav-item"><Link to='/sign-kit/learn-sign' className={"nav-link" + (location.pathname === '/sign-kit/learn-sign' ? ' active' : '')}>Learn Sign</Link></li>
+                        <li className="nav-item"><Link to='/sign-kit/animate-with-ai' className={"nav-link" + (location.pathname === '/sign-kit/animate-with-ai' ? ' active' : '')}>Animate with AI</Link></li>
+                        <li className="nav-item"><Link to='/sign-kit/ai-signing-video' className={"nav-link" + (location.pathname === '/sign-kit/ai-signing-video' ? ' active' : '')}>AI Signing Video</Link></li>
                         <li className="nav-item">
                             <button type="button" className="nav-link btn btn-link" onClick={() => setShowChat(true)} style={{ border: 'none', background: 'none' }}>Ask AI</button>
                         </li>

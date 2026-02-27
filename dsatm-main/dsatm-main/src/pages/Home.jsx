@@ -93,13 +93,14 @@ const Home = () => {
     },
   ]
 
-  // Fetch stats from backend (no localStorage)
+  // Fetch stats from backend (no localStorage). Uses relative /api so Vite proxies to backend; when backend is down we keep default stats and avoid console errors.
   useEffect(() => {
     const fetchStats = async () => {
       if (!currentUser?.email) return
       try {
-        const res = await fetch(`http://localhost:3000/api/stats/${encodeURIComponent(currentUser.email)}?name=${encodeURIComponent(currentUser.name || currentUser.given_name || '')}`)
-        if (!res.ok) throw new Error('Failed to fetch stats')
+        const q = new URLSearchParams({ name: currentUser.name || currentUser.given_name || '' }).toString()
+        const res = await fetch(`/api/stats/${encodeURIComponent(currentUser.email)}?${q}`)
+        if (!res.ok) return
         const data = await res.json()
         setStats({
           totalPoints: data.total_points || 0,
@@ -108,8 +109,8 @@ const Home = () => {
           timeSpent: data.time_spent || 0,
           streak: data.streak || 0,
         })
-      } catch (error) {
-        console.warn('Error fetching stats:', error)
+      } catch {
+        // Backend may be offline; keep default stats, no console output
       }
     }
     fetchStats()

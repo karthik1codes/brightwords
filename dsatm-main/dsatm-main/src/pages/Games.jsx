@@ -8,6 +8,7 @@ import MemoryMaster from '../components/activities/MemoryMaster'
 import StoryCreator from '../components/activities/StoryCreator'
 import WritingArtist from '../components/activities/WritingArtist'
 import StoryExplorer from '../components/activities/StoryExplorer'
+import PdfReader from '../components/activities/PdfReader'
 import '../styles/FunActivities.css'
 
 const GAME_MAP = {
@@ -17,6 +18,7 @@ const GAME_MAP = {
   stories: { title: '🚀 Story Creator', Component: StoryCreator },
   writing: { title: '🎨 Writing Artist', Component: WritingArtist },
   reading: { title: '📖 Story Explorer', Component: StoryExplorer },
+  'pdf-reader': { title: '📄 Pdf Reader', Component: PdfReader },
 }
 
 export default function Games() {

@@ -351,6 +351,18 @@ const Home = () => {
                       className="btn-secondary"
                     onClick={() => {
                       playClick()
+                      speak('Clicking Pdf Reader. Upload a PDF to hear it read word by word.')
+                      navigate('/games/pdf-reader')
+                    }}
+                      onFocus={() => speak('Pdf Reader button')}
+                      aria-label="Open Pdf Reader"
+                    >
+                      📄 Pdf Reader
+                    </button>
+                    <button
+                      className="btn-secondary"
+                    onClick={() => {
+                      playClick()
                       speak('Clicking Explore all fun activities. Navigating to activities page.')
                       navigate('/funactivities')
                     }}

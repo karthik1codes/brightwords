@@ -3,10 +3,15 @@ const cors = require('cors');
 const crypto = require('crypto');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
+const multer = require('multer');
+const pdf = require('pdf-parse-new');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Multer in-memory storage for PDF uploads (max 15MB)
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 15 * 1024 * 1024 } });
 
 // Middleware
 // Configure CORS to allow requests from main app and Sign Language client
@@ -848,6 +853,31 @@ app.post('/api/sign-language/generate-video', async (req, res) => {
         console.error('Sign-language generate-video error:', err.message);
         const status = err.message.includes('not set') || err.message.includes('not configured') ? 503 : 500;
         return res.status(status).json({ error: err.message || 'Failed to generate sign video', videoUrl: null });
+    }
+});
+
+// ========== PDF Reader (Blind / Low Vision) – extract text + Groq normalize for word-by-word TTS ==========
+app.post('/api/pdf/extract-and-normalize', upload.single('pdf'), async (req, res) => {
+    try {
+        if (!req.file || !req.file.buffer) {
+            return res.status(400).json({ error: 'Missing PDF file. Upload with field name "pdf".' });
+        }
+        const data = await pdf(req.file.buffer);
+        let text = (data.text || '').trim().replace(/\s+/g, ' ');
+        if (!text) {
+            return res.json({ text: '' });
+        }
+        if (text.length > 12000) text = text.slice(0, 12000) + '…';
+        if (!GROQ_API_KEY) {
+            return res.json({ text });
+        }
+        const systemPrompt = 'You are a text normalizer for read-aloud accessibility. Normalize the following text for clear word-by-word reading: expand common abbreviations (e.g. Dr., Mr., etc.), spell out numbers as words where natural, fix obvious typos, normalize spacing. Return ONLY the normalized text, no explanation or quotes.';
+        const normalized = await llmChat(systemPrompt, text, 8000);
+        const out = (normalized || text).trim().replace(/\s+/g, ' ');
+        return res.json({ text: out || text });
+    } catch (err) {
+        console.error('PDF extract-and-normalize error:', err.message);
+        return res.status(500).json({ error: err.message || 'Failed to process PDF' });
     }
 });
 

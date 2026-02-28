@@ -27,6 +27,7 @@ function AISigningVideo() {
   const [pause, setPause] = useState(800);
   const [audioInput, setAudioInput] = useState("");
   const [loadingVideo, setLoadingVideo] = useState(false);
+  const [recordingOverlay, setRecordingOverlay] = useState(false);
   const [videoUrl, setVideoUrl] = useState(null);
   const [videoError, setVideoError] = useState('');
   const [showVideoModal, setShowVideoModal] = useState(false);
@@ -188,6 +189,7 @@ function AISigningVideo() {
       ref.recordingFailed = false;
       mediaRecorder.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
       mediaRecorder.onstop = () => {
+        setRecordingOverlay(false);
         setLoadingVideo(false);
         if (!ref.recordingFailed) {
           const blob = new Blob(chunks, { type: mediaRecorder.mimeType || 'video/webm' });
@@ -201,6 +203,7 @@ function AISigningVideo() {
           } catch (_) {}
         }, 300);
       };
+      setRecordingOverlay(true);
       mediaRecorder.start(100);
       const glossString = glossList.join(' ');
       try {
@@ -208,10 +211,12 @@ function AISigningVideo() {
       } catch (signErr) {
         ref.onAnimationComplete = null;
         ref.recordingFailed = true;
+        setRecordingOverlay(false);
         if (mediaRecorder.state === 'recording') mediaRecorder.stop();
         setVideoError(signErr.message || 'Animation error. Some signs may not be available.');
       }
     } catch (err) {
+      setRecordingOverlay(false);
       setVideoError(err.message || 'Failed to generate signing video');
       setLoadingVideo(false);
     }
@@ -234,18 +239,33 @@ function AISigningVideo() {
             <button className="btn btn-primary btn-style w-33" onClick={resetTranscript}>Clear</button>
           </div>
           <textarea rows={3} value={audioInput} placeholder='Speech input ...' className='w-100 input-style' readOnly />
-          <button onClick={() => sign(audioInput)} className='btn btn-primary w-100 btn-style btn-start'>Start Animations</button>
           <label className='label-style'>Text Input</label>
           <textarea rows={3} ref={textFromInput} placeholder='Text input ...' className='w-100 input-style' />
-          <div className="d-flex gap-2 mt-2 flex-wrap">
-            <button type="button" className="btn btn-info btn-sm" onClick={handleGenerateVideo} disabled={loadingVideo} title="Record 3D avatar signing as video">
-              {loadingVideo ? '...' : 'AI signing video'}
-            </button>
-          </div>
-          <button onClick={() => sign(textFromInput.current?.value || '')} className='btn btn-primary w-100 btn-style btn-start mt-2'>Start Animations</button>
+          <button type="button" className="btn btn-info w-100 btn-style btn-start mt-2" onClick={handleGenerateVideo} disabled={loadingVideo} title="Record 3D avatar signing as video">
+            {loadingVideo ? '...' : 'AI signing video'}
+          </button>
         </div>
-        <div className='col-md-7'>
+        <div className='col-md-7' style={{ position: 'relative' }}>
           <div id='canvas-video'/>
+          {recordingOverlay && (
+            <div
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: '#dddddd',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 10,
+              }}
+              aria-hidden="true"
+            >
+              <p className="text-muted mb-0">Preparing your video…</p>
+            </div>
+          )}
         </div>
         <div className='col-md-2'>
           <p className='bot-label'>Select Avatar</p>
@@ -263,7 +283,7 @@ function AISigningVideo() {
           <Modal.Title>AI signing video</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {loadingVideo && <p className="text-muted">Generating signing video… The avatar will sign and record.</p>}
+          {loadingVideo && <p className="text-muted">Generating your signing video…</p>}
           {videoError && !loadingVideo && <p className="text-danger">{videoError}</p>}
           {videoUrl && !loadingVideo && (
             <video

@@ -123,9 +123,6 @@ const Navigation = ({ onStartLearning, onOpenSettings, onOpenParents }) => {
         </div>
 
         <div className="user-section" aria-label="User quick actions">
-          <div className="streak-badge" aria-label="Current streak">
-            🔥 <span id="streakCount">0</span> Day Streak!
-          </div>
           <div className="accessibility-controls">
             <button
               type="button"

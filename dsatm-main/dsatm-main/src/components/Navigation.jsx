@@ -51,7 +51,6 @@ const Navigation = ({ onStartLearning, onOpenSettings, onOpenParents }) => {
           onFocus={() => speak('BrightWords logo')}
         >
           <img src="/logo.png" alt="BrightWords" className="logo-img" />
-          <span>BrightWords</span>
         </Link>
 
         <div className="nav-menu" role="menubar" aria-label="Primary menu">
@@ -106,19 +105,6 @@ const Navigation = ({ onStartLearning, onOpenSettings, onOpenParents }) => {
             onFocus={() => speak('Feedback navigation link')}
           >
             Feedback
-          </Link>
-          <Link
-            to="/superpower"
-            className="nav-item superpower-link-bypass"
-            role="menuitem"
-            title="SuperPower - AWS AugmentAbility features"
-            onClick={() => {
-              playClick()
-              speak('Clicking SuperPower. Navigating to SuperPower page.')
-            }}
-            onFocus={() => speak('SuperPower navigation link')}
-          >
-            SuperPower
           </Link>
         </div>
 

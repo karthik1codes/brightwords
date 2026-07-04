@@ -6,7 +6,6 @@
 # Database
 *.db
 *.db-journal
-subscriptions.db
 
 # Dependencies
 node_modules/

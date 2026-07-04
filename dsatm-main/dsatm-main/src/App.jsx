@@ -13,7 +13,6 @@ import ProgressSummary from './pages/ProgressSummary'
 import FunActivities from './pages/FunActivities'
 import Games from './pages/Games'
 import BrightWords from './pages/BrightWords'
-import SuperPower from './pages/SuperPower'
 import Feedback from './pages/Feedback'
 import SignLanguage from './pages/SignLanguage'
 
@@ -132,14 +131,6 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <BrightWords />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/superpower" 
-        element={
-          <ProtectedRoute>
-            <SuperPower />
           </ProtectedRoute>
         } 
       />

@@ -5,7 +5,6 @@ dist
 *.log
 *.md
 backend
-aws-augmentability-main/node_modules
 signtranslator/node_modules
 .env
 .env.local

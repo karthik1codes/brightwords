@@ -1,7 +1,7 @@
 {
   "name": "brightwords-app",
   "version": "1.0.0",
-  "description": "BrightWords application with SuperPower integration",
+  "description": "BrightWords accessibility-focused learning application",
   "private": true,
   "scripts": {
     "dev": "vite",

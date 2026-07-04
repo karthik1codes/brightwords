@@ -90,7 +90,6 @@ dsatm/
 ├── backend/               # Express API server
 │   ├── server.js          # Main server file
 │   └── app.db            # SQLite database
-├── aws-augmentability-main/  # AWS AugmentAbility integration
 └── dist/                  # Build output
 ```
 
@@ -100,38 +99,6 @@ dsatm/
 - Auth, user stats, OTP – see `backend/server.js`
 - `POST /api/sign-language/*` - Sign Language AI
 - `POST /api/fun-activities/*` - Fun Activities AI (phonics, spelling, story, memory, writing)
-
-## Super Power (AWS AugmentAbility)
-
-The **Super Power** section (Text-to-Speech with Amazon Polly, Transcribe, etc.) uses **AWS**. Use **Asia Pacific (Sydney)** `ap-southeast-2` to match your account and credits. **Full setup:** see `public/aws-augmentability-main/SETUP-AWS.md`. Short version: (1) Deploy `template.yml` in CloudFormation (region ap-southeast-2), (2) Run `node create-config.js` in that folder and enter the stack Outputs to generate `config.js`, (3) Sign in with the temporary password from your email. Then Polly and other Super Power features work.
-
-The message *"AWS credentials not available"* appears because the app needs an AWS Cognito Identity Pool and User Pool to call services like Polly.
-
-### How to get AWS credits / use AWS for free
-
-1. **Create an AWS account** – [aws.amazon.com](https://aws.amazon.com) → Create an AWS Account.
-2. **Free Tier** – New accounts get 12 months of free usage for many services (e.g. Amazon Polly, Transcribe within limits). No separate “credits” sign-up; Free Tier applies to your account.
-3. **Educational / startup credits** – [AWS Educate](https://aws.amazon.com/education/awseducate/) or [AWS Activate](https://aws.amazon.com/activate/) can provide additional credits.
-
-### How to fix "AWS credentials not available"
-
-1. **Deploy the AWS stack**  
-   In the [AWS CloudFormation console](https://console.aws.amazon.com/cloudformation), create a stack using:
-   - **Template:** `public/aws-augmentability-main/template.yml`  
-   Fill in the parameters (Region, Username, Email). After the stack completes, note the **Outputs**: `IdentityPoolId`, `UserPoolId`, `UserWebClientId`, `Region`.
-
-2. **Create `config.js`**  
-   In `public/aws-augmentability-main/`:
-   - Copy `config.example.js` to `config.js`.
-   - In `config.js`, set:
-     - `appConfig.IdentityPoolId` = the Identity Pool ID from the stack Outputs.
-     - `amplifyConfig.Auth.region`, `userPoolId`, `userPoolWebClientId` from the Outputs.
-     - `amplifyConfig.Auth.oauth.domain` = `YOUR_CLIENT_ID.auth.YOUR_REGION.amazoncognito.com` (from Cognito User Pool → App integration → Domain name).
-
-3. **Sign in (if required)**  
-   The template creates a Cognito User Pool. Use the temporary password sent to the email you provided, or sign in via the Cognito Hosted UI when the app redirects you. After sign-in, Polly and other Super Power features should work.
-
-Without `config.js` and a deployed stack, Super Power will show the credentials error; the rest of BrightWords (Sign Language, Fun Activities, etc.) does not need AWS.
 
 ## Development
 

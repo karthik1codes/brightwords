@@ -52,25 +52,6 @@ body.authenticated #appContent {
     pointer-events: auto;
 }
 
-/* SuperPower link bypass - always accessible even when auth-locked */
-#superpower-link,
-.superpower-link-bypass {
-    pointer-events: auto !important;
-    opacity: 1 !important;
-    position: relative !important;
-    z-index: 10000 !important;
-    cursor: pointer !important;
-}
-
-/* Ensure SuperPower link is visible even when parent is hidden */
-body.auth-locked #superpower-link,
-body.auth-locked .superpower-link-bypass {
-    pointer-events: auto !important;
-    opacity: 1 !important;
-    visibility: visible !important;
-    display: inline-block !important;
-}
-
 .auth-overlay {
     position: fixed;
     inset: 0;

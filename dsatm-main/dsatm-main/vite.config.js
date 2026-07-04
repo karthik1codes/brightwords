@@ -8,7 +8,7 @@ function copyStaticFoldersPlugin() {
   return {
     name: 'copy-static-folders',
     writeBundle() {
-      const foldersToCopy = ['aws-augmentability-main', 'assets', 'signtranslator']
+      const foldersToCopy = ['assets', 'signtranslator']
       
       // Copy directory recursively
       function copyRecursive(src, dest) {
@@ -71,15 +71,6 @@ export default defineConfig({
           return
         }
         
-        // Handle /superpower route - redirect to the login page
-        if (req.url === '/superpower' || req.url === '/superpower/') {
-          res.writeHead(302, {
-            'Location': '/aws-augmentability-main/login.html'
-          })
-          res.end()
-          return
-        }
-        
         // IMPORTANT: For React Router SPA to work with direct navigation (window.location.href),
         // serve index-react.html for all React Router routes that don't match static files
         // This ensures /home, /feedback, etc. load the React app instead of 404
@@ -91,7 +82,6 @@ export default defineConfig({
                               urlPath === '/feedback' || 
                               urlPath === '/' ||
                               (!isStaticFile && 
-                               !urlPath.startsWith('/aws-augmentability-main') && 
                                !urlPath.startsWith('/sign-language') &&
                                urlPath !== '/index.html'))
         

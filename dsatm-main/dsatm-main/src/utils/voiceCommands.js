@@ -10,7 +10,6 @@ const COMMANDS = [
   { patterns: [/sign language|sign language (page)?|open sign/i], response: 'Opening Sign Language.', path: '/signlanguage' },
   { patterns: [/progress|my progress|see progress/i], response: 'Opening home.', path: '/home' },
   { patterns: [/feedback|give feedback|feedback page/i], response: 'Opening Feedback.', path: '/feedback' },
-  { patterns: [/super ?power|superpower/i], response: 'Opening SuperPower.', path: '/superpower' },
   { patterns: [/communities?|community|parents?/i], response: 'You can find Communities in the menu on the home page.', path: null },
   // Help & info
   { patterns: [/what (can you do|do you do)|help|how (do I )?use/i], response: 'You can say: go to learn, open sign language, go home, what is my streak, or open feedback. Try saying one of those.' },

@@ -5,10 +5,6 @@
   "installCommand": "npm install",
   "rewrites": [
     {
-      "source": "/aws-augmentability-main/(.*)",
-      "destination": "/aws-augmentability-main/$1"
-    },
-    {
       "source": "/signtranslator/(.*)",
       "destination": "/signtranslator/$1"
     },

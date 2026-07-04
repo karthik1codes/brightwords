@@ -59,16 +59,14 @@ function Navbar() {
                 <Link to='/sign-kit/convert' className="navbar-brand mb-0 h1">
                     <img
                         src={logo}
-                        width="30"
-                        height="30"
-                        className="d-inline-block align-top me-3 navbar-logo-tilt"
+                        height="44"
+                        className="d-inline-block align-top navbar-logo-tilt"
                         alt="BrightWords"
                         ref={logoRef}
                         onMouseMove={handleMouseMove}
                         onMouseLeave={handleMouseLeave}
-                        style={{ transition: 'transform 0.2s cubic-bezier(.25,.8,.25,1)' }}
+                        style={{ transition: 'transform 0.2s cubic-bezier(.25,.8,.25,1)', width: 'auto', objectFit: 'contain' }}
                     />
-                    BrightWords
                 </Link>
                 <button className="navbar-toggler navbar-toggler-right" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
                     <span className="navbar-toggler-icon"></span>

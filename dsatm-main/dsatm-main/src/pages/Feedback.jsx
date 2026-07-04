@@ -126,14 +126,8 @@ function Feedback() {
           <img 
             src="/logo.png" 
             alt="BrightWords" 
-            style={{ width: '40px', height: '40px', objectFit: 'contain', flexShrink: 0 }} 
+            style={{ height: '48px', width: 'auto', maxWidth: '220px', objectFit: 'contain', flexShrink: 0 }}
           />
-          <span style={{ 
-            fontFamily: "'Fredoka', cursive", 
-            fontSize: 'clamp(18px, 4vw, 24px)', 
-            fontWeight: 700, 
-            color: '#8B5CF6' 
-          }}>BrightWords</span>
         </div>
         <button
           onClick={() => {

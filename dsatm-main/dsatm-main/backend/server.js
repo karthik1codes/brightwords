@@ -26,13 +26,6 @@ app.use(express.json());
 // IMPORTANT: API routes must be registered BEFORE static files
 // This ensures /api/* routes never fall through to static file serving
 
-const Razorpay = require('razorpay');
-// Initialize Razorpay
-const razorpay = new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID || 'YOUR_RAZORPAY_KEY_ID',
-    key_secret: process.env.RAZORPAY_KEY_SECRET || 'YOUR_RAZORPAY_KEY_SECRET'
-});
-
 // ========== Groq LLM for BrightWords AI ==========
 const GROQ_API_KEY = (process.env.GROQ_API_KEY || '').trim();
 const GROQ_BASE = 'https://api.groq.com/openai/v1';
@@ -64,13 +57,6 @@ async function groqChat(systemPrompt, userMessage, maxTokens = 400) {
     const data = await res.json();
     const content = data.choices?.[0]?.message?.content?.trim() || '';
     return content;
-}
-
-// Log Razorpay initialization status
-if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
-    console.log('✅ Razorpay initialized with Key ID:', process.env.RAZORPAY_KEY_ID.substring(0, 15) + '...');
-} else {
-    console.warn('⚠️ Warning: Razorpay keys not found in environment variables!');
 }
 
 // Initialize SQLite Database
@@ -194,7 +180,7 @@ const KNOWN_WORDS = ['TIME', 'HOME', 'PERSON', 'YOU'];
 
 // Health check
 app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', message: 'BrightWords Subscription API is running' });
+    res.json({ status: 'ok', message: 'BrightWords API is running' });
 });
 
 // BrightWords AI – assistive processing (speech/question → simplified text, emotion, ASL gloss, response)

@@ -1,7 +1,13 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useCallback } from 'react'
 import { playClick } from '../../utils/sound'
-import { isVoiceEnabled } from '../../utils/voice'
-
+import {
+  isSpeechSupported,
+  unlockSpeechNow,
+  waitForVoices,
+  startSpeechKeepAlive,
+  stopSpeechKeepAlive,
+  speakUtterance,
+} from '../../utils/voice'
 
 export default function PdfReader() {
   const [file, setFile] = useState(null)
@@ -18,44 +24,45 @@ export default function PdfReader() {
   const utteranceRef = useRef(null)
   const speechRateRef = useRef(speechRate)
   const stoppedRef = useRef(false)
+  const pausedRef = useRef(false)
   speechRateRef.current = speechRate
 
   useEffect(() => {
     return () => {
+      stopSpeechKeepAlive()
       if (window.speechSynthesis) window.speechSynthesis.cancel()
       if (pdfObjectUrl) URL.revokeObjectURL(pdfObjectUrl)
     }
   }, [pdfObjectUrl])
 
-  const speakNextWord = () => {
-    if (!window.speechSynthesis || !isVoiceEnabled()) return
-    if (stoppedRef.current) return
-    if (paused) return
+  const speakNextWord = useCallback(() => {
+    if (!isSpeechSupported()) return
+    if (stoppedRef.current || pausedRef.current) return
+
     const words = wordsRef.current
     const i = wordIndexRef.current
     if (i >= words.length) {
+      stopSpeechKeepAlive()
       setIsPlaying(false)
       setPaused(false)
+      pausedRef.current = false
       return
     }
+
     const word = words[i]
     wordIndexRef.current = i + 1
-    const u = new SpeechSynthesisUtterance(word)
-    u.lang = 'en-US'
-    u.rate = speechRateRef.current
-    u.pitch = 1
-    u.volume = 1
-    u.onend = () => {
-      utteranceRef.current = null
-      speakNextWord()
-    }
-    u.onerror = () => {
-      utteranceRef.current = null
-      speakNextWord()
-    }
-    utteranceRef.current = u
-    window.speechSynthesis.speak(u)
-  }
+    utteranceRef.current = speakUtterance(word, {
+      rate: speechRateRef.current,
+      onEnd: () => {
+        utteranceRef.current = null
+        speakNextWord()
+      },
+      onError: () => {
+        utteranceRef.current = null
+        speakNextWord()
+      },
+    })
+  }, [])
 
   const handleFileChange = async (e) => {
     const chosen = e.target.files?.[0]
@@ -104,33 +111,53 @@ export default function PdfReader() {
     }
   }
 
-  const handleStart = () => {
+  const handleStart = async () => {
     if (!text) return
+    if (!isSpeechSupported()) {
+      setError('Text-to-speech is not supported in this browser.')
+      return
+    }
+
     playClick()
+    unlockSpeechNow()
     stoppedRef.current = false
+    pausedRef.current = false
+    setPaused(false)
+
     if (window.speechSynthesis) window.speechSynthesis.cancel()
     wordIndexRef.current = 0
     wordsRef.current = text.split(/\s+/).filter(Boolean)
-    setPaused(false)
     setIsPlaying(true)
+    setError('')
+
+    await waitForVoices()
+    startSpeechKeepAlive()
     speakNextWord()
   }
 
   const handlePause = () => {
     playClick()
+    pausedRef.current = true
     setPaused(true)
     if (window.speechSynthesis) window.speechSynthesis.pause()
   }
 
   const handleResume = () => {
     playClick()
+    pausedRef.current = false
     setPaused(false)
-    if (window.speechSynthesis) window.speechSynthesis.resume()
+    if (!window.speechSynthesis) return
+    window.speechSynthesis.resume()
+    if (!window.speechSynthesis.speaking) {
+      speakNextWord()
+    }
   }
 
   const handleStop = () => {
     playClick()
     stoppedRef.current = true
+    pausedRef.current = false
+    stopSpeechKeepAlive()
     setIsPlaying(false)
     setPaused(false)
     if (window.speechSynthesis) window.speechSynthesis.cancel()

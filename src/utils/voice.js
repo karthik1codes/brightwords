@@ -86,3 +86,74 @@ export const toggleVoice = () => {
   return newValue
 }
 
+export function isSpeechSupported() {
+  return typeof window !== 'undefined' && 'speechSynthesis' in window
+}
+
+/** Unlock speech on explicit user action (e.g. Start reading). */
+export function unlockSpeechNow() {
+  speechUnlocked = true
+  removeUnlockListeners()
+}
+
+export function waitForVoices(timeoutMs = 1000) {
+  return new Promise((resolve) => {
+    if (!isSpeechSupported()) {
+      resolve([])
+      return
+    }
+    const voices = window.speechSynthesis.getVoices()
+    if (voices.length) {
+      resolve(voices)
+      return
+    }
+    const onVoices = () => {
+      window.speechSynthesis.removeEventListener('voiceschanged', onVoices)
+      resolve(window.speechSynthesis.getVoices())
+    }
+    window.speechSynthesis.addEventListener('voiceschanged', onVoices)
+    setTimeout(() => {
+      window.speechSynthesis.removeEventListener('voiceschanged', onVoices)
+      resolve(window.speechSynthesis.getVoices())
+    }, timeoutMs)
+  })
+}
+
+let keepAliveTimer = null
+
+/** Chrome stops long TTS queues unless synthesis is periodically resumed. */
+export function startSpeechKeepAlive() {
+  stopSpeechKeepAlive()
+  if (!isSpeechSupported()) return
+  keepAliveTimer = setInterval(() => {
+    const syn = window.speechSynthesis
+    if (syn.speaking && !syn.paused) {
+      syn.pause()
+      syn.resume()
+    }
+  }, 7000)
+}
+
+export function stopSpeechKeepAlive() {
+  if (keepAliveTimer) {
+    clearInterval(keepAliveTimer)
+    keepAliveTimer = null
+  }
+}
+
+export function speakUtterance(text, { rate = 1, onEnd, onError } = {}) {
+  if (!isSpeechSupported()) return null
+  const utterance = new SpeechSynthesisUtterance(text)
+  utterance.lang = 'en-US'
+  utterance.rate = rate
+  utterance.pitch = 1
+  utterance.volume = 1
+  const voices = window.speechSynthesis.getVoices()
+  const enVoice = voices.find((v) => v.lang.startsWith('en'))
+  if (enVoice) utterance.voice = enVoice
+  if (onEnd) utterance.onend = onEnd
+  if (onError) utterance.onerror = onError
+  window.speechSynthesis.speak(utterance)
+  return utterance
+}
+

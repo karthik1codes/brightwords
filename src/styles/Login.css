@@ -175,70 +175,24 @@
   letter-spacing: 0.1px;
 }
 
-/* Google Button Wrapper - No Clipping */
+/* Google Sign-In button — let GSI control iframe sizing */
 .google-btn-wrapper {
-  overflow: visible !important;
   display: flex;
   justify-content: center;
   align-items: center;
   width: 100%;
-  margin-bottom: 18px;
-  position: relative;
-  z-index: 1;
+  max-width: 400px;
+  margin: 0 auto 18px;
 }
 
-/* Google Button Container - Full Visibility */
 #googleBtn {
-  width: 100% !important;
-  min-height: 48px !important;
-  height: auto !important;
-  border-radius: 9999px !important;
-  overflow: visible !important;
-  position: relative;
   display: flex;
   justify-content: center;
-  align-items: center;
+  min-height: 44px;
 }
 
-/* Ensure Google button iframe renders fully */
 #googleBtn iframe {
-  width: 100% !important;
-  max-width: 100% !important;
-  height: auto !important;
-  min-height: 48px !important;
-  border-radius: 9999px !important;
-  overflow: visible !important;
-  box-shadow: none !important;
-  transition: transform 0.15s ease, box-shadow 0.2s ease, filter 0.2s ease !important;
-}
-
-/* Google button wrapper divs - no clipping */
-#googleBtn > div {
-  width: 100% !important;
-  overflow: visible !important;
-  border-radius: 9999px !important;
-}
-
-#googleBtn > div > div {
-  width: 100% !important;
-  overflow: visible !important;
-  border-radius: 9999px !important;
-  box-shadow: none !important;
-  transition: transform 0.15s ease, box-shadow 0.2s ease, filter 0.2s ease !important;
-}
-
-/* Hover effects - no clipping */
-.google-btn-wrapper:hover #googleBtn iframe,
-.google-btn-wrapper:hover #googleBtn > div > div {
-  transform: translateY(-1px) !important;
-  filter: brightness(1.05) !important;
-  box-shadow: 0 16px 32px rgba(244, 63, 94, 0.3) !important;
-}
-
-.google-btn-wrapper:active #googleBtn iframe,
-.google-btn-wrapper:active #googleBtn > div > div {
-  transform: translateY(0) !important;
-  filter: brightness(0.98) !important;
+  border-radius: 8px;
 }
 
 /* Hint Text */

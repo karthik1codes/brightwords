@@ -1,102 +1,123 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { speak } from '../utils/voice'
 import { playClick, playSuccess } from '../utils/sound'
 import '../styles/Login.css'
 
+const GOOGLE_CLIENT_ID =
+  '369705995460-d2f937r1bj3963upbmob113ngkf5v6og.apps.googleusercontent.com'
+
+const getGoogleButtonWidth = (container) => {
+  const parentWidth = container?.parentElement?.clientWidth ?? 320
+  return Math.min(Math.max(parentWidth, 280), 400)
+}
+
 const Login = () => {
   const navigate = useNavigate()
-  const { currentUser, isLoading, initializeGoogleAuth, login } = useAuth()
-  const [buttonContainerReady, setButtonContainerReady] = useState(false)
+  const { isLoading, login } = useAuth()
+  const googleBtnRef = useRef(null)
+  const buttonRenderedRef = useRef(false)
+  const lastButtonWidthRef = useRef(0)
 
-  useEffect(() => {
-    // Wait for Google script to load
-    const checkGoogleScript = setInterval(() => {
-      if (window.google?.accounts?.id) {
-        clearInterval(checkGoogleScript)
-        initializeGoogleAuth()
-        setButtonContainerReady(true)
-      }
-    }, 150)
-
-    // Load Google script if not present
-    if (!document.querySelector('script[src*="accounts.google.com/gsi/client"]')) {
-      const script = document.createElement('script')
-      script.src = 'https://accounts.google.com/gsi/client'
-      script.async = true
-      script.defer = true
-      script.onload = () => {
-        if (window.google?.accounts?.id) {
-          initializeGoogleAuth()
-          setButtonContainerReady(true)
+  const handleGoogleCredential = useCallback(
+    (response) => {
+      try {
+        if (!response?.credential) {
+          if (response?.error) {
+            speak('Sign in canceled.')
+          }
+          return
         }
+
+        playClick()
+        playSuccess()
+        speak('Signing in with Google.')
+        login(response, navigate)
+      } catch (error) {
+        console.error('Error during sign-in:', error)
+        speak('Error signing in. Please try again.')
       }
-      document.head.appendChild(script)
-    }
+    },
+    [login, navigate]
+  )
 
-    return () => clearInterval(checkGoogleScript)
-  }, [initializeGoogleAuth])
+  const renderGoogleButton = useCallback(() => {
+    const container = googleBtnRef.current
+    if (!container || !window.google?.accounts?.id) return
 
-  // Page load announcement
+    const width = getGoogleButtonWidth(container)
+    if (width === lastButtonWidthRef.current && container.hasChildNodes()) return
+
+    lastButtonWidthRef.current = width
+    container.innerHTML = ''
+
+    window.google.accounts.id.initialize({
+      client_id: GOOGLE_CLIENT_ID,
+      callback: handleGoogleCredential,
+      auto_select: false,
+      cancel_on_tap_outside: true,
+    })
+
+    window.google.accounts.id.renderButton(container, {
+      type: 'standard',
+      theme: 'outline',
+      size: 'large',
+      text: 'signin_with',
+      shape: 'rectangular',
+      logo_alignment: 'left',
+      width,
+    })
+  }, [handleGoogleCredential])
+
   useEffect(() => {
     speak('Welcome to the Login page.')
   }, [])
 
   useEffect(() => {
-    if (buttonContainerReady && window.google?.accounts?.id) {
-      const buttonContainer = document.getElementById('googleBtn')
-      if (buttonContainer && !buttonContainer.hasChildNodes()) {
-        window.google.accounts.id.initialize({
-          client_id: '369705995460-d2f937r1bj3963upbmob113ngkf5v6og.apps.googleusercontent.com',
-          callback: (response) => {
-            try {
-              if (!response) {
-                console.error('No response from Google Sign-In')
-                return
-              }
+    if (isLoading) return
 
-              if (!response.credential) {
-                console.error('No credential in response:', response)
-                if (response.error) {
-                  console.log('Sign-in cancelled or error:', response.error)
-                  speak('Sign in canceled.')
-                  return
-                }
-                return
-              }
+    const mountButton = () => {
+      if (buttonRenderedRef.current) return
+      if (!window.google?.accounts?.id || !googleBtnRef.current) return
 
-              playClick()
-              playSuccess()
-              speak('Signing in with Google.')
-              login(response, navigate)
-            } catch (error) {
-              console.error('Error during sign-in:', error)
-              speak('Error signing in. Please try again.')
-            }
-          },
-          cancel_on_tap_outside: true,
-        })
+      buttonRenderedRef.current = true
+      renderGoogleButton()
 
-        window.google.accounts.id.renderButton(buttonContainer, {
-          theme: 'filled_blue',
-          size: 'large',
-          width: '100%',
-          shape: 'pill',
-        })
-
-        if (buttonContainer) {
-          buttonContainer.addEventListener('focus', () => {
-            speak('Sign in with Google button')
-          }, true)
-        }
-
-        if (!currentUser) {
-          window.google.accounts.id.prompt()
-        }
-      }
+      const container = googleBtnRef.current
+      container?.addEventListener(
+        'focus',
+        () => speak('Sign in with Google button'),
+        true
+      )
     }
-  }, [buttonContainerReady, currentUser, login, navigate])
+
+    if (window.google?.accounts?.id) {
+      mountButton()
+      return undefined
+    }
+
+    const interval = setInterval(() => {
+      if (window.google?.accounts?.id) {
+        clearInterval(interval)
+        mountButton()
+      }
+    }, 150)
+
+    return () => clearInterval(interval)
+  }, [isLoading, renderGoogleButton])
+
+  useEffect(() => {
+    const container = googleBtnRef.current
+    if (!container || !buttonRenderedRef.current) return undefined
+
+    const observer = new ResizeObserver(() => {
+      window.requestAnimationFrame(() => renderGoogleButton())
+    })
+    observer.observe(container.parentElement ?? container)
+
+    return () => observer.disconnect()
+  }, [isLoading, renderGoogleButton])
 
   if (isLoading) {
     return (
@@ -137,7 +158,12 @@ const Login = () => {
             Sign in to unlock your personalized learning journey.
           </p>
           <div className="google-btn-wrapper">
-            <div id="googleBtn" aria-live="polite" aria-label="Sign in with Google"></div>
+            <div
+              ref={googleBtnRef}
+              id="googleBtn"
+              aria-live="polite"
+              aria-label="Sign in with Google"
+            />
           </div>
           <p className="login-hint">
             Need a different account? Use the account switcher in the Google dialog.

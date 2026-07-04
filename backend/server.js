@@ -5,6 +5,7 @@ const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const multer = require('multer');
 const pdf = require('pdf-parse-new');
+const { normalizePdfText } = require('./pdfNormalize');
 require('dotenv').config();
 
 const app = express();
@@ -859,19 +860,16 @@ app.post('/api/pdf/extract-and-normalize', upload.single('pdf'), async (req, res
         const data = await pdf(req.file.buffer);
         let text = (data.text || '').trim().replace(/\s+/g, ' ');
         if (!text) {
-            return res.json({ text: '' });
+            return res.json({ text: '', aiEnhanced: false });
         }
-        if (text.length > 12000) text = text.slice(0, 12000) + '…';
-        if (!GROQ_API_KEY) {
-            return res.json({ text });
+        if (text.length > 50000) {
+            text = text.slice(0, 50000) + '…';
         }
-        const systemPrompt = 'You are a text normalizer for read-aloud accessibility. Normalize the following text for clear word-by-word reading: expand common abbreviations (e.g. Dr., Mr., etc.), spell out numbers as words where natural, fix obvious typos, normalize spacing. Return ONLY the normalized text, no explanation or quotes.';
-        const normalized = await llmChat(systemPrompt, text, 8000);
-        const out = (normalized || text).trim().replace(/\s+/g, ' ');
-        return res.json({ text: out || text });
+        const result = await normalizePdfText(text);
+        return res.json(result);
     } catch (err) {
         console.error('PDF extract-and-normalize error:', err.message);
-        return res.status(500).json({ error: err.message || 'Failed to process PDF' });
+        return res.status(500).json({ error: 'Failed to process PDF. Please try a smaller file.' });
     }
 });
 

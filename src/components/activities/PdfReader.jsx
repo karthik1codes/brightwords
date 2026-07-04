@@ -9,6 +9,7 @@ export default function PdfReader() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [text, setText] = useState('')
+  const [aiEnhanced, setAiEnhanced] = useState(false)
   const [speechRate, setSpeechRate] = useState(1)
   const [isPlaying, setIsPlaying] = useState(false)
   const [paused, setPaused] = useState(false)
@@ -66,6 +67,7 @@ export default function PdfReader() {
     playClick()
     setError('')
     setText('')
+    setAiEnhanced(false)
     if (pdfObjectUrl) {
       URL.revokeObjectURL(pdfObjectUrl)
       setPdfObjectUrl(null)
@@ -85,9 +87,13 @@ export default function PdfReader() {
         throw new Error('PDF service is unavailable. Please try again in a moment.')
       }
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Failed to process PDF')
+      if (!res.ok) {
+        const message = data.error || 'Failed to process PDF'
+        throw new Error(message.includes('Groq') ? 'Could not enhance text with AI. Please try again.' : message)
+      }
       const extracted = (data.text || '').trim()
       setText(extracted)
+      setAiEnhanced(Boolean(data.aiEnhanced))
       const words = extracted ? extracted.split(/\s+/).filter(Boolean) : []
       wordsRef.current = words
       wordIndexRef.current = 0
@@ -157,7 +163,8 @@ export default function PdfReader() {
       {error && <p className="activity-error" style={{ color: 'var(--danger, #c00)' }}>{error}</p>}
       {file && !loading && (
         <p className="activity-status">
-          {file.name} — {wordCount} word{wordCount !== 1 ? 's' : ''} ready.
+          {file.name} — {wordCount} word{wordCount !== 1 ? 's' : ''} ready
+          {!aiEnhanced && wordCount > 0 ? ' (read from PDF text)' : ''}.
         </p>
       )}
 

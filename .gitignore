@@ -1,9 +1,24 @@
 # Dependencies
 node_modules/
 
+# Build output
+dist/
+
 # Vite cache (generated at build/dev time)
 **/.vite/
+
+# Environment
+.env
+.env.local
+.env.production
 
 # Archives
 *.zip
 projectname.zip
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: brightwords-api
+    runtime: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: GROQ_API_KEY
+        sync: false
+      - key: SIGN_VIDEO_PROVIDER
+        value: isl
+      # ISL video server is optional in production; set URL if hosted separately
+      - key: SIGN_VIDEO_ISL_URL
+        sync: false

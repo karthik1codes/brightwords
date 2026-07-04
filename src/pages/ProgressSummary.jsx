@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { apiUrl } from '../utils/apiBase'
 import '../styles/Home.css'
 
 const ProgressSummary = () => {
@@ -20,9 +21,9 @@ const ProgressSummary = () => {
       if (!currentUser?.email) return
       try {
         const res = await fetch(
-          `http://localhost:3000/api/stats/${encodeURIComponent(
+          apiUrl(`/api/stats/${encodeURIComponent(
             currentUser.email
-          )}?name=${encodeURIComponent(currentUser.name || currentUser.given_name || '')}`
+          )}?name=${encodeURIComponent(currentUser.name || currentUser.given_name || '')}`)
         )
         if (!res.ok) throw new Error('Failed to fetch stats')
         const data = await res.json()

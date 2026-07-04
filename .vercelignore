@@ -3,10 +3,11 @@ dist
 .git
 .vscode
 *.log
-*.md
-backend
+backend/node_modules
+backend/sign-video-isl/.venv
+backend/sign-video-isl/out
 signtranslator/node_modules
 .env
 .env.local
+backend/.env
 .DS_Store
-

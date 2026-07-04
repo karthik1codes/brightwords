@@ -16,7 +16,13 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 15 
 // Middleware
 // Configure CORS to allow requests from main app and Sign Language client
 app.use(cors({
-    origin: ['http://localhost:8000', 'http://127.0.0.1:8000', 'http://localhost:9000', 'http://localhost:3001', 'http://localhost:8001', 'http://127.0.0.1:8001'],
+    origin: [
+        'http://localhost:8000', 'http://127.0.0.1:8000',
+        'http://localhost:9000', 'http://localhost:3001',
+        'http://localhost:8001', 'http://127.0.0.1:8001',
+        'https://brightwords.in', 'https://www.brightwords.in',
+        /^https:\/\/.*\.vercel\.app$/,
+    ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
@@ -59,8 +65,10 @@ async function groqChat(systemPrompt, userMessage, maxTokens = 400) {
     return content;
 }
 
-// Initialize SQLite Database
-const dbPath = path.join(__dirname, 'app.db');
+// Initialize SQLite Database (use /tmp on Vercel — serverless has no persistent disk)
+const dbPath = process.env.VERCEL
+    ? path.join('/tmp', 'brightwords-app.db')
+    : path.join(__dirname, 'app.db');
 const db = new sqlite3.Database(dbPath, (err) => {
     if (err) {
         console.error('Error opening database:', err.message);
@@ -994,27 +1002,29 @@ app.post('/api/fun-activities/writing-feedback', async (req, res) => {
     }
 });
 
-// Serve static files ONLY after all API routes
-// This ensures /api/* routes are never caught by static file serving
+// Serve static files ONLY after all API routes (local dev only; Vercel serves frontend separately)
 app.use(express.static('public'));
 
-// Start server
-app.listen(PORT, () => {
-    console.log(`BrightWords API server running on port ${PORT}`);
-    console.log(`Health check: http://localhost:${PORT}/api/health`);
-    console.log(`API routes registered before static files`);
-});
-
-// Graceful shutdown
-process.on('SIGINT', () => {
-    console.log('\nShutting down server...');
-    db.close((err) => {
-        if (err) {
-            console.error('Error closing database:', err.message);
-        } else {
-            console.log('Database connection closed');
-        }
-        process.exit(0);
+// Local development: start HTTP server. On Vercel, export the app for the platform runtime.
+if (!process.env.VERCEL) {
+    app.listen(PORT, () => {
+        console.log(`BrightWords API server running on port ${PORT}`);
+        console.log(`Health check: http://localhost:${PORT}/api/health`);
+        console.log(`API routes registered before static files`);
     });
-});
+
+    process.on('SIGINT', () => {
+        console.log('\nShutting down server...');
+        db.close((err) => {
+            if (err) {
+                console.error('Error closing database:', err.message);
+            } else {
+                console.log('Database connection closed');
+            }
+            process.exit(0);
+        });
+    });
+}
+
+module.exports = app;
 

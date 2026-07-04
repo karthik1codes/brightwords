@@ -1,15 +1,8 @@
 /**
  * Fun Activities AI API – calls backend /api/fun-activities/* (Groq).
- * When app is served on the default Vite port (8000), uses same-origin proxy.
- * When app is on another port (e.g. 8001, 9000), calls backend at port 3000 directly (backend CORS allows these origins).
  */
-function getApiBase() {
-  if (import.meta.env.VITE_API_BASE) return import.meta.env.VITE_API_BASE
-  const port = typeof window !== 'undefined' ? window.location.port : ''
-  if (port === '8000') return '' // proxy on default dev port
-  if (port && port !== '3000') return 'http://localhost:3000' // app on other port → call backend directly
-  return ''
-}
+import { getApiBase, apiUrl } from './apiBase'
+
 const BASE = getApiBase()
 
 async function safeJson(res) {

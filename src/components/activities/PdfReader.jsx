@@ -80,6 +80,10 @@ export default function PdfReader() {
         method: 'POST',
         body: formData,
       })
+      const contentType = res.headers.get('content-type') || ''
+      if (!contentType.includes('application/json')) {
+        throw new Error('PDF service is unavailable. Please try again in a moment.')
+      }
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Failed to process PDF')
       const extracted = (data.text || '').trim()

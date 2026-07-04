@@ -5,6 +5,10 @@
   "installCommand": "npm install && cd backend && npm install",
   "rewrites": [
     {
+      "source": "/api/(.*)",
+      "destination": "/api"
+    },
+    {
       "source": "/signtranslator/(.*)",
       "destination": "/signtranslator/$1"
     },
@@ -41,8 +45,9 @@
     }
   ],
   "functions": {
-    "api/[...path].js": {
-      "maxDuration": 30
+    "api/index.js": {
+      "maxDuration": 30,
+      "includeFiles": "backend/**"
     }
   },
   "git": {

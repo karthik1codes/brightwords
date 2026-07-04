@@ -3,7 +3,7 @@
  * Handles non-JSON responses (e.g. 404 HTML) and returns a clear error message.
  */
 const API_UNAVAILABLE_MSG =
-  'AI service unavailable. Start the BrightWords backend (cd backend && npm start) and open the app from the dev server (e.g. http://localhost:8000).';
+  'AI service unavailable. Check that the backend is running and GROQ_API_KEY is set.';
 
 export async function signLanguageFetch(url, options = {}) {
   const res = await fetch(url, {

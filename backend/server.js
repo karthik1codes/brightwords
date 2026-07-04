@@ -1002,10 +1002,10 @@ app.post('/api/fun-activities/writing-feedback', async (req, res) => {
     }
 });
 
-// Serve static files ONLY after all API routes (local dev only; Vercel serves frontend separately)
+// Serve static files ONLY after all API routes (local dev)
 app.use(express.static('public'));
 
-// Local development: start HTTP server. On Vercel, export the app for the platform runtime.
+// Local development: start HTTP server. On Vercel, api/[...path].js exports this app.
 if (!process.env.VERCEL) {
     app.listen(PORT, () => {
         console.log(`BrightWords API server running on port ${PORT}`);

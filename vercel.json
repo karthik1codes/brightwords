@@ -2,7 +2,7 @@
   "buildCommand": "npm run build:signlanguage && npm run build",
   "outputDirectory": "dist",
   "framework": "vite",
-  "installCommand": "npm install",
+  "installCommand": "npm install && cd backend && npm install",
   "rewrites": [
     {
       "source": "/signtranslator/(.*)",
@@ -17,7 +17,7 @@
       "destination": "/assets/$1"
     },
     {
-      "source": "/(.*)",
+      "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
   ],
@@ -40,18 +40,14 @@
       ]
     }
   ],
+  "functions": {
+    "api/[...path].js": {
+      "maxDuration": 30
+    }
+  },
   "git": {
     "deploymentEnabled": {
       "main": true
-    }
-  },
-  "experimentalServices": {
-    "brightwords-api": {
-      "type": "web",
-      "root": "backend",
-      "entrypoint": "server.js",
-      "routePrefix": "/",
-      "buildCommand": "npm install"
     }
   }
 }

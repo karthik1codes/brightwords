@@ -1,106 +1,92 @@
 # BrightWords
 
-A comprehensive accessibility-focused web application with sign language learning and inclusive learning activities.
+**Live:** [brightwords.in](https://brightwords.in)
 
-## Features
+BrightWords is an accessibility-first learning app we built for kids and learners who need more than a one-size-fits-all classroom. Sign language support, voice navigation, PDF read-aloud, and a bunch of small games — phonics, spelling, stories, memory, writing — with AI help where it actually makes sense.
 
-- 🔐 **Google Authentication** - Secure login with Google Sign-In
-- 🤟 **Sign Language Learning** - Interactive sign language translation and learning (AI-powered)
-- 🎮 **Fun Activities** - Phonics, Spelling, Story Creator, Story Explorer, Memory, Writing (AI hints)
-- ♿ **Accessibility Features** - Built with accessibility in mind
-- 🎨 **Modern React UI** - Responsive and user-friendly interface
+We started this because accessibility in edtech often feels like an afterthought. BrightWords is our attempt to put it up front.
 
-## Tech Stack
+## Founders
 
-- **Frontend**: React 18, Vite, React Router
-- **Backend**: Node.js, Express
-- **Database**: SQLite
-- **AI**: Groq (Sign Language & Fun Activities)
-- **Authentication**: Google OAuth 2.0
+- **Shashank VA** — [shashankva.me](https://shashankva.me)
+- **Karthik M** — [karthikme.in](https://karthikme.in)
 
-## Quick Start
+## What's in the app
 
-### Prerequisites
+- Google sign-in
+- Indian Sign Language (ISL) learning with an embedded translator + Groq-powered tutor chat
+- Fun activities: Phonics, Spelling Wizard, Memory Master, Story Creator, Story Explorer, Writing Artist
+- PDF Reader — upload a PDF, get the text extracted, hear it read word by word
+- Voice assistance and screen-reader-friendly UI across the main flows
+- Parent mode vs learner mode after login
 
-- Node.js (v16 or higher)
-- npm or yarn
+## Tech stack
 
-### Installation
+| Layer | Tools |
+|-------|--------|
+| Frontend | React 18, Vite, React Router |
+| Backend | Node.js, Express |
+| AI | Groq (Llama) — sign language tutor, activity hints, PDF text cleanup |
+| Auth | Google OAuth 2.0 |
+| Database | SQLite (local dev; stats/OTP routes) |
+| Hosting | Vercel (frontend + serverless API) |
+| Sign video (optional) | Python ISL server in `backend/sign-video-isl/` |
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd brightwords
-   ```
+Production runs a slim API on Vercel (`backend/vercelApp.js`). The full backend with SQLite lives in `backend/server.js` for local development.
 
-2. **Install frontend dependencies**
-   ```bash
-   npm install
-   ```
+## Run locally
 
-3. **Install backend dependencies**
-   ```bash
-   cd backend
-   npm install
-   ```
+**Prerequisites:** Node.js 18+, npm
 
-4. **Configure backend environment**
-   ```bash
-   cd backend
-   cp .env.example .env
-   ```
-   Edit `.env` and add `GROQ_API_KEY` (optional; get one at https://console.groq.com). On Windows you can run `.\create-env.ps1` instead to create `.env` interactively.
+```bash
+git clone https://github.com/karthik1codes/brightwords.git
+cd brightwords
+npm install
+cd backend && npm install && cd ..
+```
 
-   **Optional – AI signing video:** To enable the "AI signing video" button (text → sign-language video): use the **free ISL** option (Indian Sign Language) by setting `SIGN_VIDEO_PROVIDER=isl` and running `backend/sign-video-isl/server.py` (after `python setup_isl.py`), or use a paid ASL/BSL provider (Sign-Speak/Signapse). See `backend/SIGN_VIDEO_SETUP.md` for details.
+Copy env and add your Groq key:
 
-### Running the Application
+```bash
+cd backend
+cp .env.example .env   # or .\create-env.ps1 on Windows
+```
 
-**Terminal 1 - Backend Server:**
+**Terminal 1 — API (port 3000):**
 ```bash
 cd backend
 npm start
 ```
 
-**Terminal 2 - Frontend Server:**
+**Terminal 2 — frontend (port 8000):**
 ```bash
 npm run dev
 ```
 
-The application will be available at:
-- **Frontend**: http://localhost:8000
-- **Backend API**: http://localhost:3000
+Open http://localhost:8000
 
-## Project Structure
+Optional: ISL signing video needs the Python server — see `backend/SIGN_VIDEO_SETUP.md`.
+
+## Project layout
 
 ```
 brightwords/
-├── src/                    # React application source
-│   ├── components/         # Reusable React components
-│   ├── context/           # React context providers
-│   ├── hooks/             # Custom React hooks
-│   ├── pages/             # Page components
-│   └── styles/            # CSS stylesheets
-├── backend/               # Express API server
-│   ├── server.js          # Main server file
-│   └── app.db            # SQLite database
-└── dist/                  # Build output
+├── src/              React app (pages, components, styles)
+├── backend/          Express API, Groq helpers, sign-video-isl
+├── api/              Vercel serverless entry
+├── public/           Static assets + Sign Language translator build
+└── vercel.json       Deploy config
 ```
 
-## API Endpoints
+## API (high level)
 
-- `GET /api/health` - Health check
-- Auth, user stats, OTP – see `backend/server.js`
-- `POST /api/sign-language/*` - Sign Language AI
-- `POST /api/fun-activities/*` - Fun Activities AI (phonics, spelling, story, memory, writing)
+- `GET /api/health`
+- `POST /api/sign-language/*` — explain, chat, normalize, gloss
+- `POST /api/fun-activities/*` — phonics, spelling, stories, memory, writing
+- `POST /api/pdf/extract-and-normalize` — PDF text extraction + read-aloud prep
 
-## Development
-
-- Frontend runs on port **8000**
-- Backend runs on port **3000**
-- Hot reload enabled for both frontend and backend
+Full route list is in `backend/server.js` (local) and `backend/vercelApp.js` (production).
 
 ## License
 
-See individual component licenses for details.
-
-
+See individual component licenses where third-party code is included.

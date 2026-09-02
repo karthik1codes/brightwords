@@ -28,6 +28,7 @@ $envContent = @"
 
 # Sign Language & Fun Activities AI - Groq LLM (Optional, free tier)
 GROQ_API_KEY=$groqApiKey
+GROQ_MODEL=openai/gpt-oss-20b
 
 # Server Port (Optional - defaults to 3000)
 PORT=3000

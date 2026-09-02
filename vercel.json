@@ -9,14 +9,6 @@
       "destination": "/api"
     },
     {
-      "source": "/signtranslator/(.*)",
-      "destination": "/signtranslator/$1"
-    },
-    {
-      "source": "/Sign Language/(.*)",
-      "destination": "/Sign Language/$1"
-    },
-    {
       "source": "/assets/(.*)",
       "destination": "/assets/$1"
     },

@@ -8,13 +8,10 @@ import { useAuth } from '../context/AuthContext'
  * Redirects to /login with replace: true if not authenticated
  */
 const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, isLoading, checkAuthSync } = useAuth()
-
-  // Use synchronous check first to avoid race conditions
-  const hasValidSession = checkAuthSync()
+  const { isAuthenticated, isLoading } = useAuth()
 
   // Show loading state only if we're still loading AND there's no valid session
-  if (isLoading && !hasValidSession) {
+  if (isLoading) {
     return (
       <div style={{ 
         display: 'flex', 
@@ -27,7 +24,7 @@ const ProtectedRoute = ({ children }) => {
     )
   }
 
-  if (!isAuthenticated && !hasValidSession) {
+  if (!isAuthenticated) {
     // Redirect to /login with replace: true so back button cannot return to protected pages
     return <Navigate to="/login" replace />
   }

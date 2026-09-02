@@ -4,9 +4,8 @@ import { speak } from '../utils/voice'
 import { playClick } from '../utils/sound'
 import '../styles/SignLanguage.css'
 
-// Sign Language app lives under public/Sign Language - served at /Sign%20Language/...
-const SIGN_LANGUAGE_APP_BASE = '/Sign%20Language/signtranslator/learnsign/client'
-const SIGN_LANGUAGE_APP_URL = `${SIGN_LANGUAGE_APP_BASE}/build/index.html#/sign-kit/convert`
+// The separately-built Sign Language app is published as a compact static bundle.
+const SIGN_LANGUAGE_APP_URL = '/signtranslator/index.html#/sign-kit/convert'
 
 const SignLanguage = () => {
   useEffect(() => {

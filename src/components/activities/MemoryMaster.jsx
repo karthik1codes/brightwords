@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { speak } from '../../utils/voice'
 import { playClick, playSuccess } from '../../utils/sound'
 import { memoryHint } from '../../utils/funActivitiesApi'
+import { recordLearningActivity } from '../../utils/learningProgress'
 
 const EMOJI_PAIRS = ['🐶', '🐱', '🌻', '⭐', '🍎', '🚀', '🎵', '🌈']
 
@@ -53,6 +54,10 @@ export default function MemoryMaster({ onFocus }) {
   const allMatched = EMOJI_PAIRS.length > 0 && matched.length === EMOJI_PAIRS.length
   const unmatchedEmojis = EMOJI_PAIRS.filter(e => !matched.includes(e))
   const firstUnmatched = unmatchedEmojis[0]
+
+  useEffect(() => {
+    if (allMatched) recordLearningActivity({ activity: 'Memory Master', action: 'completed', completed: true })
+  }, [allMatched])
 
   const handleGetHint = async () => {
     if (hintUsed || !firstUnmatched || allMatched) return

@@ -8,7 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "start": "vite --port 9000",
-    "build:signlanguage": "cd \"public/Sign Language/signtranslator/learnsign/client\" && npm ci --omit=dev && npm run build"
+    "build:signlanguage": "cd \"signlanguage-app/client\" && npm ci --omit=dev && npm run build"
   },
   "dependencies": {
     "cors": "^2.8.5",

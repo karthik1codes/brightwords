@@ -1,240 +1,68 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
 import { apiUrl } from '../utils/apiBase'
 import '../styles/Home.css'
 
+const EMPTY_PROGRESS = { activity_events: 0, completed_activities: 0, practice_minutes: 0, active_days: [], activity_breakdown: {} }
+
 const ProgressSummary = () => {
   const navigate = useNavigate()
-  const { currentUser } = useAuth()
-
-  const [stats, setStats] = useState({
-    totalPoints: 0,
-    lessonsComplete: 0,
-    achievements: 0,
-    timeSpent: 0,
-    streak: 0,
-  })
+  const [progress, setProgress] = useState(EMPTY_PROGRESS)
+  const [status, setStatus] = useState('Loading activity summary…')
 
   useEffect(() => {
-    const fetchStats = async () => {
-      if (!currentUser?.email) return
+    const loadProgress = async () => {
       try {
-        const res = await fetch(
-          apiUrl(`/api/stats/${encodeURIComponent(
-            currentUser.email
-          )}?name=${encodeURIComponent(currentUser.name || currentUser.given_name || '')}`)
-        )
-        if (!res.ok) throw new Error('Failed to fetch stats')
-        const data = await res.json()
-        setStats({
-          totalPoints: data.total_points || 0,
-          lessonsComplete: data.lessons_complete || 0,
-          achievements: data.achievements || 0,
-          timeSpent: data.time_spent || 0,
-          streak: data.streak || 0,
-        })
+        const response = await fetch(apiUrl('/api/progress'), { credentials: 'same-origin' })
+        const data = await response.json()
+        if (!response.ok) throw new Error(data.error || 'Unable to load activity summary.')
+        setProgress({ ...EMPTY_PROGRESS, ...data.progress })
+        setStatus('')
       } catch (error) {
-        console.warn('Error fetching stats for summary:', error)
+        setStatus(error.message || 'Unable to load activity summary.')
       }
     }
-    fetchStats()
-  }, [currentUser])
+    loadProgress()
+  }, [])
 
-  const { totalPoints, lessonsComplete, achievements, timeSpent, streak } = stats
-
-  // Composite score 0–100 from activities (points, lessons, achievements, time, streak)
-  const growthScore = Math.min(
-    100,
-    Math.round(
-      (totalPoints / 10 + lessonsComplete * 5 + achievements * 8 + timeSpent / 2 + streak * 3) / 2
-    )
-  )
-  const skillScore = Math.min(100, Math.round((lessonsComplete * 12 + achievements * 15) / 2))
-  const emotionalScore = Math.min(100, Math.round((achievements * 12 + streak * 10) / 2))
-  const engagementScore = Math.min(100, Math.round((timeSpent * 2 + totalPoints / 5) / 2))
-  const consistencyScore = Math.min(100, Math.round(streak * 15 + lessonsComplete * 3))
-  const readinessScore = Math.min(
-    100,
-    Math.round((growthScore + skillScore + consistencyScore) / 3)
-  )
-  const overallScore = Math.min(
-    100,
-    Math.round(
-      (totalPoints / 8 + lessonsComplete * 4 + achievements * 6 + timeSpent / 3 + streak * 5) / 2
-    )
-  )
-
+  const activityRows = Object.entries(progress.activity_breakdown)
+    .sort(([, a], [, b]) => (b.completed + b.opened) - (a.completed + a.opened))
+    .slice(0, 5)
   const cards = [
-    {
-      title: 'Improvement & Growth Overview',
-      score: growthScore,
-      sub: [
-        { label: 'Lessons', value: lessonsComplete },
-        { label: 'Points', value: totalPoints },
-        { label: 'Milestones', value: achievements },
-      ],
-    },
-    {
-      title: 'Skill-Specific Development Tracking',
-      score: skillScore,
-      sub: [
-        { label: 'Activities completed', value: lessonsComplete },
-        { label: 'Achievements', value: achievements },
-      ],
-    },
-    {
-      title: 'Emotional & Behavioral Progress',
-      score: emotionalScore,
-      sub: [
-        { label: 'Achievement unlocks', value: achievements },
-        { label: 'Day streak', value: streak },
-      ],
-    },
-    {
-      title: 'Personalized Learning Style Insights',
-      score: engagementScore,
-      sub: [
-        { label: 'Time on task (min)', value: timeSpent },
-        { label: 'Points earned', value: totalPoints },
-      ],
-    },
-    {
-      title: 'Consistency & Routine Monitoring',
-      score: consistencyScore,
-      sub: [
-        { label: 'Current streak (days)', value: streak },
-        { label: 'Lessons completed', value: lessonsComplete },
-      ],
-    },
-    {
-      title: 'Predictive Growth & Support Recommendations',
-      score: readinessScore,
-      sub: [
-        { label: 'Growth score', value: growthScore },
-        { label: 'Consistency score', value: consistencyScore },
-      ],
-    },
-    {
-      title: 'Shareable Professional Progress Report',
-      score: overallScore,
-      sub: [
-        { label: 'Total points', value: totalPoints },
-        { label: 'Time (min)', value: timeSpent },
-        { label: 'Achievements', value: achievements },
-      ],
-    },
+    { label: 'Learning activities explored', value: progress.activity_events, detail: 'Recorded activity opens and learning actions.' },
+    { label: 'Activities completed', value: progress.completed_activities, detail: 'Only activities that report a completed outcome.' },
+    { label: 'Active learning days', value: progress.active_days.length, detail: 'Days with at least one recorded learning action.' },
+    { label: 'Activity types tried', value: Object.keys(progress.activity_breakdown).length, detail: 'Different BrightWords activities the learner has opened.' },
   ]
 
-  return (
-    <div className="home-page">
-      <div className="main-container">
-        <main id="mainContent" role="main" tabIndex={-1}>
-          <section
-            className="accessibility-section"
-            aria-label="Parent mode progress overview"
-            style={{ marginTop: 32, paddingBottom: 48 }}
-          >
-            <div className="section-header" style={{ marginBottom: 32 }}>
-              <h2 className="section-title">Parent Mode</h2>
-              <p className="section-subtitle">
-                See how far your child has come—every step, every try, every win. Celebrating their journey with you.
-              </p>
-            </div>
-
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-                gap: 24,
-                maxWidth: 1200,
-                margin: '0 auto 32px',
-              }}
-            >
-              {cards.map((card, index) => (
-                <div
-                  key={index}
-                  className="support-widget"
-                  style={{
-                    padding: 24,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 16,
-                    minHeight: 160,
-                  }}
-                >
-                  <h3
-                    style={{
-                      margin: 0,
-                      fontSize: 15,
-                      fontWeight: 700,
-                      color: '#4c1d95',
-                      lineHeight: 1.3,
-                    }}
-                  >
-                    {card.title}
-                  </h3>
-                  <div
-                    style={{
-                      fontSize: 36,
-                      fontWeight: 800,
-                      color: '#6d28d9',
-                      lineHeight: 1,
-                    }}
-                  >
-                    {card.score}
-                    <span style={{ fontSize: 16, fontWeight: 600, color: '#7c3aed', marginLeft: 4 }}>
-                      / 100
-                    </span>
-                  </div>
-                  <div
-                    style={{
-                      display: 'flex',
-                      flexWrap: 'wrap',
-                      gap: '8px 16px',
-                      fontSize: 13,
-                      color: '#6b7280',
-                    }}
-                  >
-                    {card.sub.map((item, i) => (
-                      <span key={i}>
-                        <strong style={{ color: '#374151' }}>{item.label}:</strong> {item.value}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                gap: 16,
-                marginBottom: 24,
-                flexWrap: 'wrap',
-              }}
-            >
-              <button
-                className="btn-primary"
-                onClick={() => navigate('/home', { replace: true })}
-              >
-                Continue to Home
-              </button>
-              <button
-                className="btn-secondary"
-                onClick={() => navigate('/feedback', { state: { from: 'parent-mode' } })}
-                aria-label="Share your feedback"
-              >
-                Share your thoughts — Feedback
-              </button>
-            </div>
-          </section>
-        </main>
+  return <div className="home-page"><div className="main-container"><main id="mainContent" role="main" tabIndex={-1}>
+    <section className="accessibility-section" aria-label="Parent activity summary" style={{ marginTop: 32, paddingBottom: 48 }}>
+      <div className="section-header" style={{ marginBottom: 32 }}>
+        <h2 className="section-title">Parent Activity Summary</h2>
+        <p className="section-subtitle">A simple record of your child’s activity in BrightWords. This is not a clinical, emotional, or predictive assessment.</p>
       </div>
-    </div>
-  )
+      {status && <p className="activity-status" role="status">{status}</p>}
+      {!status && <>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 24, maxWidth: 1200, margin: '0 auto 32px' }}>
+          {cards.map((card) => <section key={card.label} className="support-widget" style={{ padding: 24, minHeight: 155 }}>
+            <h3 style={{ margin: 0, fontSize: 16, color: '#4c1d95', lineHeight: 1.3 }}>{card.label}</h3>
+            <p style={{ margin: '14px 0 10px', fontSize: 34, fontWeight: 800, color: '#6d28d9' }}>{card.value}</p>
+            <p style={{ margin: 0, color: '#4b5563', fontSize: 13, lineHeight: 1.45 }}>{card.detail}</p>
+          </section>)}
+        </div>
+        <section className="support-widget" style={{ padding: 24, maxWidth: 1200, margin: '0 auto 32px' }} aria-labelledby="activityBreakdownTitle">
+          <h3 id="activityBreakdownTitle" style={{ marginTop: 0, color: '#4c1d95' }}>Activity breakdown</h3>
+          {activityRows.length ? <ul style={{ margin: 0, paddingLeft: 20, color: '#374151', lineHeight: 1.8 }}>
+            {activityRows.map(([activity, totals]) => <li key={activity}><strong>{activity}</strong>: opened {totals.opened} time{totals.opened === 1 ? '' : 's'}, completed {totals.completed} time{totals.completed === 1 ? '' : 's'}.</li>)}
+          </ul> : <p style={{ margin: 0, color: '#4b5563' }}>Activity details will appear after the learner starts an activity.</p>}
+        </section>
+      </>}
+      <div style={{ display: 'flex', justifyContent: 'center', gap: 16, flexWrap: 'wrap' }}>
+        <button className="btn-primary" onClick={() => navigate('/home', { replace: true })}>Continue to Home</button>
+        <button className="btn-secondary" onClick={() => navigate('/feedback', { state: { from: 'parent-mode' } })}>Share feedback</button>
+      </div>
+    </section>
+  </main></div></div>
 }
 
 export default ProgressSummary

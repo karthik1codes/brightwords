@@ -21,7 +21,7 @@ const Login = () => {
   const lastButtonWidthRef = useRef(0)
 
   const handleGoogleCredential = useCallback(
-    (response) => {
+    async (response) => {
       try {
         if (!response?.credential) {
           if (response?.error) {
@@ -33,7 +33,7 @@ const Login = () => {
         playClick()
         playSuccess()
         speak('Signing in with Google.')
-        login(response, navigate)
+        await login(response, navigate)
       } catch (error) {
         console.error('Error during sign-in:', error)
         speak('Error signing in. Please try again.')

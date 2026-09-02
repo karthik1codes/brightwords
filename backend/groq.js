@@ -1,6 +1,7 @@
 const GROQ_API_KEY = (process.env.GROQ_API_KEY || '').trim();
 const GROQ_BASE = 'https://api.groq.com/openai/v1';
-const GROQ_MODEL = process.env.GROQ_MODEL || 'llama-3.1-8b-instant';
+// llama-3.1-8b-instant retired on free/dev (Aug 2026). Official replacement: openai/gpt-oss-20b
+const GROQ_MODEL = process.env.GROQ_MODEL || 'openai/gpt-oss-20b';
 
 async function llmChat(systemPrompt, userMessage, maxTokens = 300) {
   if (!GROQ_API_KEY) {
@@ -18,8 +19,10 @@ async function llmChat(systemPrompt, userMessage, maxTokens = 300) {
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userMessage },
       ],
-      max_tokens: maxTokens,
+      // Reasoning models spend completion tokens thinking; keep headroom + low effort
+      max_completion_tokens: maxTokens + 512,
       temperature: 0.4,
+      reasoning_effort: 'low',
     }),
   });
   if (!res.ok) {

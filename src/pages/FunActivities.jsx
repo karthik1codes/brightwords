@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAnnouncement } from '../hooks/useAnnouncement'
 import { speak } from '../utils/voice'
 import { playClick } from '../utils/sound'
+import { recordLearningActivity } from '../utils/learningProgress'
 import '../styles/FunActivities.css'
 
 const doodles = {
@@ -195,6 +196,7 @@ const FunActivities = () => {
                   playClick()
                   speak(`Clicking ${activity.title}. ${activity.description}`)
                   setActiveId(activity.id)
+                  recordLearningActivity({ activity: activity.title, action: 'opened' })
                   navigate(`/funactivities#${activity.id}`, { replace: true })
                   announce(`${activity.title} selected`)
                 }}

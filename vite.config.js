@@ -3,13 +3,12 @@ import react from '@vitejs/plugin-react'
 import fs from 'fs'
 import path from 'path'
 
-// Plugin to copy static folders to dist
-function copyStaticFoldersPlugin() {
+// The Sign Language app is developed separately. Copy only its production build
+// so its source code, node_modules, and source maps never enter the main deploy.
+function copySignLanguageBuildPlugin() {
   return {
     name: 'copy-static-folders',
     writeBundle() {
-      const foldersToCopy = ['assets', 'signtranslator']
-      
       // Copy directory recursively
       function copyRecursive(src, dest) {
         if (!fs.existsSync(src)) return
@@ -28,28 +27,24 @@ function copyStaticFoldersPlugin() {
             // Skip node_modules and dist
             if (entry.name === 'node_modules' || entry.name === 'dist') continue
             copyRecursive(srcPath, destPath)
-          } else {
+          } else if (!entry.name.endsWith('.map')) {
             fs.copyFileSync(srcPath, destPath)
           }
         }
       }
       
-      // Copy each folder
-      foldersToCopy.forEach(folder => {
-        const srcDir = path.resolve(__dirname, 'public', folder)
-        const destDir = path.resolve(__dirname, `dist/${folder}`)
-        
-        if (fs.existsSync(srcDir)) {
-          copyRecursive(srcDir, destDir)
-          console.log(`✓ Copied ${folder} to dist`)
-        }
-      })
+      const srcDir = path.resolve(__dirname, 'signlanguage-app', 'client', 'build')
+      const destDir = path.resolve(__dirname, 'dist', 'signtranslator')
+      if (fs.existsSync(srcDir)) {
+        copyRecursive(srcDir, destDir)
+        console.log('✓ Copied Sign Language production build to dist')
+      }
     }
   }
 }
 
 export default defineConfig({
-  plugins: [react(), copyStaticFoldersPlugin()],
+  plugins: [react(), copySignLanguageBuildPlugin()],
   server: {
     port: 8000,
     host: '0.0.0.0', // Listen on all network interfaces (IPv4 and IPv6)
@@ -120,4 +115,3 @@ export default defineConfig({
     chunkSizeWarningLimit: 1000
   }
 })
-

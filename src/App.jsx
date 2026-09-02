@@ -18,12 +18,9 @@ import SignLanguage from './pages/SignLanguage'
 
 // Catch-all route component that checks authentication
 function CatchAllRoute() {
-  const { isAuthenticated, isLoading, checkAuthSync } = useAuth()
+  const { isAuthenticated, isLoading } = useAuth()
   
-  // Use synchronous check to avoid race conditions
-  const hasValidSession = checkAuthSync()
-  
-  if (isLoading && !hasValidSession) {
+  if (isLoading) {
     return (
       <div style={{ 
         display: 'flex', 
@@ -37,7 +34,7 @@ function CatchAllRoute() {
   }
   
   // Redirect authenticated users to home (/home), others to login
-  return <Navigate to={(isAuthenticated || hasValidSession) ? "/home" : "/login"} replace />
+  return <Navigate to={isAuthenticated ? "/home" : "/login"} replace />
 }
 
 function AppRoutes() {

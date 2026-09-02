@@ -1,6 +1,7 @@
 /**
  * Lightweight Express app for Vercel serverless (no sqlite3 native module).
- * AI routes only — stats/OTP require local server or a hosted DB later.
+ * Production Express app for Vercel: verified sessions, durable activity
+ * summaries (Upstash Redis), and learner-facing AI routes.
  */
 const express = require('express');
 const cors = require('cors');
@@ -9,6 +10,8 @@ const pdf = require('pdf-parse-new');
 const { llmChat, KNOWN_WORDS } = require('./groq');
 const { normalizePdfText } = require('./pdfNormalize');
 const { generateSignVideo, isSignVideoConfigured } = require('./signVideoProviders');
+const { googleLogin, getSession, logout, requireSession } = require('./auth');
+const progressStore = require('./progressStore');
 
 const app = express();
 const upload = multer({
@@ -32,6 +35,36 @@ app.use(express.json({ limit: '2mb' }));
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'BrightWords API is running' });
+});
+
+// Google credentials are verified on the server. The browser receives only an
+// HttpOnly session cookie and never stores an identity token itself.
+app.post('/api/auth/google', googleLogin);
+app.get('/api/auth/session', getSession);
+app.post('/api/auth/logout', logout);
+
+// Every learner and parent API route below this point requires a valid session.
+app.use('/api', requireSession);
+
+app.get('/api/progress', async (req, res) => {
+  try {
+    const progress = await progressStore.read(req.user);
+    return res.json({ progress });
+  } catch (err) {
+    console.error('Progress read error:', err.message);
+    return res.status(500).json({ error: 'Unable to load activity summary.' });
+  }
+});
+
+app.post('/api/progress/events', async (req, res) => {
+  try {
+    const progress = await progressStore.record(req.user, req.body);
+    return res.status(201).json({ progress });
+  } catch (err) {
+    const status = err.message.includes('required') ? 400 : 500;
+    console.error('Progress record error:', err.message);
+    return res.status(status).json({ error: status === 400 ? err.message : 'Unable to save activity.' });
+  }
 });
 
 app.post('/api/sign-language/explain', async (req, res) => {

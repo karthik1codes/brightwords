@@ -6,6 +6,8 @@ const path = require('path');
 const multer = require('multer');
 const pdf = require('pdf-parse-new');
 const { normalizePdfText } = require('./pdfNormalize');
+const { googleLogin, getSession, logout, requireSession } = require('./auth');
+const progressStore = require('./progressStore');
 require('dotenv').config();
 
 const app = express();
@@ -48,13 +50,14 @@ async function groqChat(systemPrompt, userMessage, maxTokens = 400) {
             'Authorization': `Bearer ${GROQ_API_KEY}`,
         },
         body: JSON.stringify({
-            model: process.env.GROQ_MODEL || 'llama-3.1-8b-instant',
+            model: process.env.GROQ_MODEL || 'openai/gpt-oss-20b',
             messages: [
                 { role: 'system', content: systemPrompt },
                 { role: 'user', content: userMessage },
             ],
-            max_tokens: maxTokens,
+            max_completion_tokens: maxTokens + 512,
             temperature: 0.4,
+            reasoning_effort: 'low',
         }),
     });
     if (!res.ok) {
@@ -149,8 +152,8 @@ const db = new sqlite3.Database(dbPath, (err) => {
     }
 });
 
-// ========== Groq LLM helper for Sign Language AI features (free tier: Llama 3.1 8B, etc.) ==========
-const GROQ_MODEL = process.env.GROQ_MODEL || 'llama-3.1-8b-instant'; // free tier; or llama-3.3-70b-versatile, qwen2-72b-instant
+// ========== Groq LLM helper for Sign Language AI (gpt-oss-20b; llama-3.1-8b-instant is retired) ==========
+const GROQ_MODEL = process.env.GROQ_MODEL || 'openai/gpt-oss-20b';
 
 async function llmChat(systemPrompt, userMessage, maxTokens = 300) {
     if (!GROQ_API_KEY) {
@@ -168,8 +171,9 @@ async function llmChat(systemPrompt, userMessage, maxTokens = 300) {
                 { role: 'system', content: systemPrompt },
                 { role: 'user', content: userMessage },
             ],
-            max_tokens: maxTokens,
+            max_completion_tokens: maxTokens + 512,
             temperature: 0.4,
+            reasoning_effort: 'low',
         }),
     });
     if (!res.ok) {
@@ -190,6 +194,36 @@ const KNOWN_WORDS = ['TIME', 'HOME', 'PERSON', 'YOU'];
 // Health check
 app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', message: 'BrightWords API is running' });
+});
+
+app.post('/api/auth/google', googleLogin);
+app.get('/api/auth/session', getSession);
+app.post('/api/auth/logout', logout);
+
+// Keep legacy phone OTP routes public; all learner, parent, PDF, and AI routes
+// require a verified Google session.
+app.use('/api', (req, res, next) => {
+    if (req.path === '/auth/send-otp' || req.path === '/auth/verify-otp') return next();
+    return requireSession(req, res, next);
+});
+
+app.get('/api/progress', async (req, res) => {
+    try {
+        return res.json({ progress: await progressStore.read(req.user) });
+    } catch (err) {
+        console.error('Progress read error:', err.message);
+        return res.status(500).json({ error: 'Unable to load activity summary.' });
+    }
+});
+
+app.post('/api/progress/events', async (req, res) => {
+    try {
+        return res.status(201).json({ progress: await progressStore.record(req.user, req.body) });
+    } catch (err) {
+        const status = err.message.includes('required') ? 400 : 500;
+        console.error('Progress record error:', err.message);
+        return res.status(status).json({ error: status === 400 ? err.message : 'Unable to save activity.' });
+    }
 });
 
 // BrightWords AI – assistive processing (speech/question → simplified text, emotion, ASL gloss, response)
@@ -340,6 +374,10 @@ app.get('/api/stats/:identifier', (req, res) => {
     const identifier = req.params.identifier || '';
     const name = req.query.name || '';
     const unifiedUserId = req.query.unifiedUserId || null;
+
+    if (identifier !== req.user.email && identifier !== req.user.sub) {
+        return res.status(403).json({ error: 'You may only access your own progress.' });
+    }
     
     // Check if identifier is an email or unified_user_id
     const isEmail = identifier.includes('@');
@@ -379,11 +417,10 @@ app.get('/api/stats/:identifier', (req, res) => {
 
 // Update stats (incremental) - supports unified_user_id
 app.post('/api/stats/update', (req, res) => {
-    const { userEmail, userName, totalPoints = 0, lessonsComplete = 0, achievements = 0, timeSpent = 0, unifiedUserId } = req.body || {};
-    const email = (userEmail || '').toLowerCase();
-    if (!email && !unifiedUserId) {
-        return res.status(400).json({ error: 'userEmail or unifiedUserId is required' });
-    }
+    const { totalPoints = 0, lessonsComplete = 0, achievements = 0, timeSpent = 0 } = req.body || {};
+    const email = req.user.email.toLowerCase();
+    const userName = req.user.name;
+    const unifiedUserId = req.user.sub;
     getOrCreateStats(email, userName, unifiedUserId, (err, row) => {
         if (err) {
             return res.status(500).json({ error: 'Failed to fetch stats' });

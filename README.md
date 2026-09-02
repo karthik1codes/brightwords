@@ -26,9 +26,9 @@ We started this because accessibility in edtech often feels like an afterthought
 |-------|--------|
 | Frontend | React 18, Vite, React Router |
 | Backend | Node.js, Express |
-| AI | Groq (Llama) — sign language tutor, activity hints, PDF text cleanup |
+| AI | Groq (`openai/gpt-oss-20b`) — sign language tutor, activity hints, PDF text cleanup |
 | Auth | Google OAuth 2.0 |
-| Database | SQLite (local dev; stats/OTP routes) |
+| Database | Upstash Redis (production activity summaries); SQLite for legacy local OTP development |
 | Hosting | Vercel (frontend + serverless API) |
 | Sign video (optional) | Python ISL server in `backend/sign-video-isl/` |
 
@@ -45,12 +45,24 @@ npm install
 cd backend && npm install && cd ..
 ```
 
-Copy env and add your Groq key:
+Copy env and add the required production credentials:
 
 ```bash
 cd backend
 cp .env.example .env   # or .\create-env.ps1 on Windows
 ```
+
+For production, configure these in Vercel (never as `VITE_*` variables):
+
+```env
+GROQ_API_KEY=...
+SESSION_SECRET=a-long-random-server-only-secret
+GOOGLE_CLIENT_ID=369705995460-d2f937r1bj3963upbmob113ngkf5v6og.apps.googleusercontent.com
+UPSTASH_REDIS_REST_URL=...
+UPSTASH_REDIS_REST_TOKEN=...
+```
+
+Google credentials are verified on the server. The browser stores no Google ID token; it uses a secure HttpOnly session cookie instead. Production activity summaries require an Upstash Redis database so learner records persist across serverless invocations.
 
 **Terminal 1 — API (port 3000):**
 ```bash
@@ -74,7 +86,8 @@ brightwords/
 ├── src/              React app (pages, components, styles)
 ├── backend/          Express API, Groq helpers, sign-video-isl
 ├── api/              Vercel serverless entry
-├── public/           Static assets + Sign Language translator build
+├── public/           Main app static assets only
+├── signlanguage-app/ Separate Sign Language source; only its production build is deployed
 └── vercel.json       Deploy config
 ```
 

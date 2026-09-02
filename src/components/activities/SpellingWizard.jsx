@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react'
 import { speak } from '../../utils/voice'
 import { playClick, playSuccess } from '../../utils/sound'
 import { spellingWords, spellingHint } from '../../utils/funActivitiesApi'
+import { recordLearningActivity } from '../../utils/learningProgress'
 
 const FALLBACK_WORDS = ['cat', 'dog', 'sun', 'hat', 'run', 'bug', 'pet', 'red', 'sit', 'top', 'cup', 'map']
 
@@ -77,6 +78,7 @@ export default function SpellingWizard({ onFocus }) {
     playClick()
     const trimmed = input.trim().toLowerCase()
     if (trimmed === word.toLowerCase()) {
+      recordLearningActivity({ activity: 'Spelling Wizard', action: 'completed', completed: true })
       setStreak((s) => s + 1)
       setFeedback('correct')
       playSuccess()
